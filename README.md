@@ -18,7 +18,7 @@ The demo report runs on synthetic data for an invented retailer. Its other pages
 
 ## Results
 
-In my client work, report delivery went from about two weeks to 1–2 days with this workflow. That's my experience, not a benchmark.
+In my client work, report delivery went from 60–100 hours to about 3 days with this workflow. That's my experience, not a benchmark.
 
 ## Quick start
 

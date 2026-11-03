@@ -7,6 +7,8 @@ This tracks the pack itself, not a Power BI project — `pbi-starter/CHANGELOG.m
 
 ## [Unreleased]
 
+- README: the delivery-time figure under Results now reads 60–100 hours to about 3 days
+
 ## [1.0.0] - 2026-11-03
 
 - Governance for Power BI projects (`.pbip`) in `CLAUDE.md`: a canonical 5-stage flow (scope → source analysis → ETL → modeling → theme/pages/visuals), ETL to a star schema, direct TMDL/PBIR authoring, user checkpoints, and numbered Hard Rules with their rationale

@@ -8,6 +8,7 @@ This tracks the pack itself, not a Power BI project — `pbi-starter/CHANGELOG.m
 ## [Unreleased]
 
 - README: the delivery-time figure under Results now reads 60–100 hours to about 3 days
+- README: Mermaid diagrams of the demo star schema and its Power Query staging flow, sections reordered so the optional Claude Code setup follows the quick start and Contact and License close the page, and the quick start says why Windows is required (Power BI Desktop runs only on Windows)
 
 ## [1.0.0] - 2026-11-03
 

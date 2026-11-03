@@ -16,13 +16,70 @@ The demo report runs on synthetic data for an invented retailer. Its other pages
 - **Release discipline.** [`RELEASING.md`](RELEASING.md), [`CHANGELOG.md`](CHANGELOG.md) and [`skills/power-bi-release/`](skills/power-bi-release/) define the process: a changelog line per change, a semver scheme adapted to BI (what shifts numbers stakeholders already saw is a major bump), and an annotated tag per release.
 - **Governance for an AI pair-programmer.** [`CLAUDE.md`](CLAUDE.md) sets a 5-stage flow with user checkpoints and 24 numbered Hard Rules, many with the failure that caused them. The [`skills/`](skills/) carry out each stage.
 
+### The model
+
+The demo's star, as `relationships.tmdl` defines it. Every relationship is many-to-one and single-direction, from the fact to the dimension:
+
+```mermaid
+erDiagram
+    dim_date     ||--o{ fact_sales   : "Order Date"
+    dim_customer ||--o{ fact_sales   : "Customer ID"
+    dim_product  ||--o{ fact_sales   : "Product ID"
+    dim_category ||--o{ fact_sales   : "Category"
+    dim_date     ||--o{ fact_targets : "Month"
+    dim_category ||--o{ fact_targets : "Category"
+```
+
+`fact_sales` has one row per order line and `fact_targets` one row per month × category, so the Target measures stay blank below that grain. `dim_date` is marked as the date table. `_Measures` holds the measures and has no relationships.
+
+The Power Query flow that feeds it. Only the six star tables load. Each `stg_` query scrubs junk tokens, normalizes, casts types last and then guards types, required columns and the unique key, stopping the refresh with the offending rows named:
+
+```mermaid
+flowchart LR
+    param[/"DataFolder parameter"/] --> src["_Source<br/>shared CSV reader"]
+
+    subgraph staging["Staging (not loaded)"]
+        raw_orders --> stg_orders
+        stg_customers
+        stg_products
+        stg_targets
+    end
+
+    subgraph star["Loaded star"]
+        fact_sales
+        fact_targets
+        dim_date
+        dim_customer
+        dim_product
+        dim_category
+    end
+
+    src -- "orders.csv" --> raw_orders
+    src -- "customers.csv" --> stg_customers
+    src -- "products.csv" --> stg_products
+    src -- "targets.csv" --> stg_targets
+
+    stg_orders --> fact_sales & dim_date
+    stg_customers -- "plus an UNKNOWN member" --> dim_customer
+    stg_customers -- "orphan ids to UNKNOWN" --> fact_sales
+    stg_products --> dim_product & dim_category
+    stg_products -- "category, unit cost" --> fact_sales
+    stg_products -- "category check" --> fact_targets
+    stg_targets --> fact_targets & dim_date
+
+    dq[("_DataQualityIssues<br/>not loaded")]
+    raw_orders & stg_orders & stg_customers -.-> dq
+    src -. "products.csv, customers.csv" .-> dq
+    style dq stroke-dasharray: 5 5
+```
+
 ## Results
 
 In my client work, report delivery went from 60–100 hours to about 3 days with this workflow. That's my experience, not a benchmark.
 
 ## Quick start
 
-You need Windows and Power BI Desktop for the report, and Python 3.14 for the tests. The dependency pins in `demo/requirements.txt` were verified on 3.14, and older versions may have no wheel for the pinned numpy.
+You need Power BI Desktop for the report, and Desktop runs only on Windows. The tests need only Python 3.14 and run on any OS; CI runs them on Linux. The dependency pins in `demo/requirements.txt` were verified on 3.14, and older versions may have no wheel for the pinned numpy.
 
 1. Clone into a short path:
 
@@ -45,51 +102,7 @@ You need Windows and Power BI Desktop for the report, and Python 3.14 for the te
 
 [`demo/README.md`](demo/README.md) explains the dataset, what the ETL does with each defect, and how to regenerate the data.
 
-## Repository layout
-
-```
-pbi-pack/
-├── CLAUDE.md                  Governance: 5-stage flow, Hard Rules, release protocol, semver
-├── CHANGELOG.md               This repo's changelog
-├── RELEASING.md               Release steps for this repo
-├── LICENSE                    MIT, for this repo's own work
-├── THIRD-PARTY-NOTICES.md     Microsoft's notice for the sample report material
-├── ruff.toml, .shellcheckrc   Lint settings used by CI
-├── demo/                      Seeded synthetic dataset, its generator and its documentation
-├── tests/                     pytest checks on the dataset, the visual catalog and the demo's saved data
-├── pbi-starter/               Kit to copy into a new report repo
-│   └── templates/demo/        The demo report as a PBIP: TMDL model and PBIR report
-├── pbiviz-starter/            Kit for a standalone custom visual repo, with its own governance
-├── reference/power-bi-visuals/  Microsoft's Power BI Visuals sample report, to browse in Desktop
-├── skills/                    Claude Code skills
-│   ├── power-bi-*/            16 skills: step zero, DAX, modeling, Power Query, deployment, release,
-│   │                          docs, security, diagnostics, reports, visuals, pages, themes,
-│   │                          filters and custom visuals
-│   └── power-bi-visuals/references/visual-catalog/  One working visual.json per visual type and feature
-├── scripts/
-│   ├── check-denylist.sh      Fails when a forbidden term appears in a tracked file
-│   ├── build-visual-catalog.py  Rebuilds the sample report copy and the visual catalog
-│   ├── stamp-governance.sh, sync-starter.sh  Stamp governance hashes, copy governance to pbi-starter/
-│   ├── install-hooks.sh, install-pbi-sync.sh, sync-*.sh  Write to ~/.claude/, see below
-│   ├── pbi-sync/              Gated publish from a local repo to a OneDrive deliverable folder
-│   └── git-hooks/             Tracked sources of the git hooks
-├── user/                      User-level Claude Code instructions, synced into ~/.claude/CLAUDE.md
-├── docs/
-│   ├── img/                   Demo report screenshots
-│   ├── using-the-pack.md      Full reference for the kits, hooks, publishing and setup
-│   └── pbi-sync-runbook.html  Operating guide for the OneDrive publish
-└── .github/workflows/         ci.yml; sync-claude.yml re-stamps governance on push
-```
-
-## License
-
-MIT, see [`LICENSE`](LICENSE). That covers this repo's own work. Microsoft's sample report in `reference/power-bi-visuals/` and the examples copied from it into the visual catalog keep their own notice, see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
-
-## Contact
-
-Contact: Igor Peixoto — igor@igorpp.dev
-
-## Using the pack with Claude Code
+## Using the pack with Claude Code (optional)
 
 The quick start above needs none of this section.
 
@@ -143,3 +156,47 @@ cp -r /path/to/pbi-pack/pbi-starter/. /path/to/new-powerbi-project/   # trailing
 For a standalone custom visual, copy `pbiviz-starter/` the same way. It has its own governance, because a TypeScript repo needs different rules from a report: `power-bi-visual-dev` takes the place of `power-bi-dev`.
 
 [`docs/using-the-pack.md`](docs/using-the-pack.md) has the full reference: extracting a custom visual into its own repo, the language policy, the release flow, how the git hooks and governance hashes work, publishing to OneDrive, setting up a second machine, and the advisor setup.
+
+## Repository layout
+
+```
+pbi-pack/
+├── CLAUDE.md                  Governance: 5-stage flow, Hard Rules, release protocol, semver
+├── CHANGELOG.md               This repo's changelog
+├── RELEASING.md               Release steps for this repo
+├── LICENSE                    MIT, for this repo's own work
+├── THIRD-PARTY-NOTICES.md     Microsoft's notice for the sample report material
+├── ruff.toml, .shellcheckrc   Lint settings used by CI
+├── demo/                      Seeded synthetic dataset, its generator and its documentation
+├── tests/                     pytest checks on the dataset, the visual catalog and the demo's saved data
+├── pbi-starter/               Kit to copy into a new report repo
+│   └── templates/demo/        The demo report as a PBIP: TMDL model and PBIR report
+├── pbiviz-starter/            Kit for a standalone custom visual repo, with its own governance
+├── reference/power-bi-visuals/  Microsoft's Power BI Visuals sample report, to browse in Desktop
+├── skills/                    Claude Code skills
+│   ├── power-bi-*/            16 skills: step zero, DAX, modeling, Power Query, deployment, release,
+│   │                          docs, security, diagnostics, reports, visuals, pages, themes,
+│   │                          filters and custom visuals
+│   └── power-bi-visuals/references/visual-catalog/  One working visual.json per visual type and feature
+├── scripts/
+│   ├── check-denylist.sh      Fails when a forbidden term appears in a tracked file
+│   ├── build-visual-catalog.py  Rebuilds the sample report copy and the visual catalog
+│   ├── stamp-governance.sh, sync-starter.sh  Stamp governance hashes, copy governance to pbi-starter/
+│   ├── install-hooks.sh, install-pbi-sync.sh, sync-*.sh  Write to ~/.claude/, see below
+│   ├── pbi-sync/              Gated publish from a local repo to a OneDrive deliverable folder
+│   └── git-hooks/             Tracked sources of the git hooks
+├── user/                      User-level Claude Code instructions, synced into ~/.claude/CLAUDE.md
+├── docs/
+│   ├── img/                   Demo report screenshots
+│   ├── using-the-pack.md      Full reference for the kits, hooks, publishing and setup
+│   └── pbi-sync-runbook.html  Operating guide for the OneDrive publish
+└── .github/workflows/         ci.yml; sync-claude.yml re-stamps governance on push
+```
+
+## Contact
+
+Contact: Igor Peixoto — igor@igorpp.dev
+
+## License
+
+MIT, see [`LICENSE`](LICENSE). That covers this repo's own work. Microsoft's sample report in `reference/power-bi-visuals/` and the examples copied from it into the visual catalog keep their own notice, see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).

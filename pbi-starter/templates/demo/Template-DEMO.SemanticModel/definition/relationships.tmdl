@@ -1,0 +1,24 @@
+relationship fact_sales_dim_date_order
+	fromColumn: fact_sales.'Order Date'
+	toColumn: dim_date.Date
+
+relationship fact_sales_dim_customer
+	fromColumn: fact_sales.'Customer ID'
+	toColumn: dim_customer.'Customer ID'
+
+relationship fact_sales_dim_product
+	fromColumn: fact_sales.'Product ID'
+	toColumn: dim_product.'Product ID'
+
+relationship fact_sales_dim_category
+	fromColumn: fact_sales.Category
+	toColumn: dim_category.Category
+
+relationship fact_targets_dim_date
+	fromColumn: fact_targets.Month
+	toColumn: dim_date.Date
+
+relationship fact_targets_dim_category
+	fromColumn: fact_targets.Category
+	toColumn: dim_category.Category
+

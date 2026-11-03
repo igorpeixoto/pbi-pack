@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainerMobileState/2.9.0/schema.json",
+  "position": {
+    "x": 0,
+    "y": 88,
+    "z": 6000,
+    "height": 559,
+    "width": 324,
+    "tabOrder": 25
+  },
+  "objects": {
+    "referenceLabel": [],
+    "referenceLabelDetail": [],
+    "image": [],
+    "layout": [
+      {
+        "properties": {
+          "orientation": {
+            "expr": {
+              "Literal": {
+                "Value": "1D"
+              }
+            }
+          },
+          "rowCount": {
+            "expr": {
+              "Literal": {
+                "Value": "5L"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "referenceLabelLayout": []
+  }
+}

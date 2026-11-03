@@ -1,0 +1,76 @@
+#!/bin/sh
+# Git pre-commit hook: sync governance artifacts to their runtime locations.
+#
+# This file is the tracked source of truth. It is NOT executed from here —
+# git only runs .git/hooks/pre-commit, which is untracked by design. (Re)install with:
+#   sh scripts/install-hooks.sh
+
+ROOT_CLAUDE="CLAUDE.md"
+STARTER_CLAUDE="pbi-starter/CLAUDE.md"
+STARTER_SETTINGS="pbi-starter/.claude/settings.json"
+VISUAL_CLAUDE="pbiviz-starter/CLAUDE.md"
+SKILLS_DIR="skills"
+
+STAGED=$(git diff --cached --name-only)
+
+# --- 1. Stamp CLAUDE.md (report governance), then sync its governance span to pbi-starter ---
+# The hash lets any project copy of CLAUDE.md detect whether it's behind this pack's
+# canonical version, without needing network access (power-bi-dev §5). Only the
+# BEGIN..END span is copied: the root file carries pack-only notes after END.
+if [ -f "$ROOT_CLAUDE" ] && printf '%s\n' "$STAGED" | grep -q "^CLAUDE.md$"; then
+    echo "[Git Hook] Stamping CLAUDE.md and syncing its governance span -> $STARTER_CLAUDE..."
+    NEW_HASH=$(sh scripts/stamp-governance.sh "$ROOT_CLAUDE" "power-bi-skills") || exit 1
+    sh scripts/sync-starter.sh || exit 1
+    git add "$ROOT_CLAUDE" "$STARTER_CLAUDE" "$STARTER_SETTINGS"
+    echo "[Git Hook] Stamped hash $NEW_HASH; $STARTER_CLAUDE staged successfully."
+elif printf '%s\n' "$STAGED" | grep -q "^.claude/settings.json$"; then
+    # Settings changed without CLAUDE.md: the starter still has to follow. Refuse if CLAUDE.md
+    # has unstaged edits - sync-starter would copy that unstamped span into the starter.
+    git diff --quiet -- "$ROOT_CLAUDE" || {
+        echo "[Git Hook] CLAUDE.md has unstaged edits; stage or stash them before committing .claude/settings.json." >&2
+        exit 1
+    }
+    sh scripts/sync-starter.sh || exit 1
+    git add "$STARTER_CLAUDE" "$STARTER_SETTINGS"
+    echo "[Git Hook] $STARTER_SETTINGS staged."
+fi
+
+# --- 2. Stamp pbiviz-starter/CLAUDE.md (custom visual repo governance) ---
+# No copy step here: unlike the report governance, this file IS its own canonical source —
+# the pack root is a governance repo, not a .pbiviz repo, so it has no root counterpart.
+# Standalone visual repos compare their hash against this file (power-bi-visual-dev §7).
+if [ -f "$VISUAL_CLAUDE" ] && printf '%s\n' "$STAGED" | grep -q "^${VISUAL_CLAUDE}$"; then
+    echo "[Git Hook] Stamping $VISUAL_CLAUDE..."
+    NEW_HASH=$(sh scripts/stamp-governance.sh "$VISUAL_CLAUDE" "power-bi-visual-skills") || exit 1
+    git add "$VISUAL_CLAUDE"
+    echo "[Git Hook] Stamped hash $NEW_HASH; $VISUAL_CLAUDE staged successfully."
+fi
+
+# --- 3. Sync skills/ -> ~/.claude/skills/, the runtime location Claude Code actually loads from ---
+# Shared implementation lives in scripts/sync-skills.sh (also called by post-merge and
+# post-checkout, and runnable by hand). Only fires when this commit actually touches skills/.
+if [ -d "$SKILLS_DIR" ] && printf '%s\n' "$STAGED" | grep -q "^${SKILLS_DIR}/"; then
+    sh scripts/sync-skills.sh "Git Hook"
+fi
+
+# --- 3b. Sync user/CLAUDE.md -> its span in ~/.claude/CLAUDE.md, and user/settings.json -> the keys
+#         it lists in ~/.claude/settings.json (both user-level: they apply in every project) ---
+if [ -f "user/CLAUDE.md" ] && printf '%s\n' "$STAGED" | grep -q "^user/CLAUDE.md$"; then
+    sh scripts/sync-user-claude.sh "Git Hook"
+fi
+if [ -f "user/settings.json" ] && printf '%s\n' "$STAGED" | grep -q "^user/settings.json$"; then
+    sh scripts/sync-user-settings.sh "Git Hook" || exit 1
+fi
+
+# --- 4. Install scripts/pbi-sync/ -> ~/.claude/pbi-sync/bin/, where the hooks run from ---
+# Same reason as the skills sync above: the pack is canonical, but the runtime copy is what
+# actually executes. Without this, editing a publish script here has no effect until someone
+# remembers to run the installer by hand.
+if [ -d "scripts/pbi-sync" ] && printf '%s\n' "$STAGED" | grep -q "^scripts/pbi-sync/"; then
+    sh scripts/install-pbi-sync.sh "Git Hook"
+fi
+
+# --- 5. Reinstall .git/hooks/ when their tracked sources change, so this clone runs what it commits ---
+# Must stay the LAST step, written as one line ending in exit: it replaces this very file, so the
+# shell must not read anything after it.
+if printf '%s\n' "$STAGED" | grep -q "^scripts/git-hooks/"; then sh scripts/install-hooks.sh >/dev/null && echo "[Git Hook] git hooks reinstalled."; fi; exit 0

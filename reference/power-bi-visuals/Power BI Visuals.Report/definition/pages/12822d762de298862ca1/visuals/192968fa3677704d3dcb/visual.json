@@ -1,0 +1,36 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "192968fa3677704d3dcb",
+  "position": {
+    "x": 1119.2304745690572,
+    "y": 1039.03639072143,
+    "z": 2000,
+    "height": 40.097041923813578,
+    "width": 700.82655884230689,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "https://learn.microsoft.com/power-bi/visuals/power-bi-visualizations-overview",
+                    "textStyle": {},
+                    "url": "https://learn.microsoft.com/power-bi/visuals/power-bi-visualizations-overview"
+                  }
+                ],
+                "horizontalTextAlignment": "right"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

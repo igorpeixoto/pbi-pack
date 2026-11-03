@@ -1,0 +1,171 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainerMobileState/2.9.0/schema.json",
+  "position": {
+    "x": 0,
+    "y": 417,
+    "z": 4000,
+    "height": 339,
+    "width": 324,
+    "tabOrder": 80
+  },
+  "objects": {
+    "general": [
+      {
+        "properties": {
+          "paragraphs": [
+            {
+              "textRuns": [
+                {
+                  "value": "Text boxes allow you add any text with rich formatting, such as ",
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  }
+                },
+                {
+                  "value": "bold",
+                  "textStyle": {
+                    "fontWeight": "bold",
+                    "fontSize": "16pt"
+                  }
+                },
+                {
+                  "value": ", ",
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  }
+                },
+                {
+                  "value": "italic",
+                  "textStyle": {
+                    "fontStyle": "italic",
+                    "fontSize": "16pt"
+                  }
+                },
+                {
+                  "value": ", ",
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  }
+                },
+                {
+                  "value": "underline",
+                  "textStyle": {
+                    "fontSize": "16pt",
+                    "textDecoration": "underline"
+                  }
+                },
+                {
+                  "value": ", ",
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  }
+                },
+                {
+                  "value": "links",
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  },
+                  "url": "https://learn.microsoft.com/power-bi/create-reports/power-bi-reports-add-text-and-shapes"
+                },
+                {
+                  "value": ", and lists.",
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  }
+                }
+              ]
+            },
+            {
+              "textRuns": [
+                {
+                  "value": ""
+                }
+              ]
+            },
+            {
+              "textRuns": [
+                {
+                  "value": "You can also add data from your model. Totals sales is ",
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  }
+                },
+                {
+                  "value": {
+                    "propertyIdentifier": {
+                      "objectName": "values",
+                      "propertyName": "expr"
+                    },
+                    "selector": {
+                      "id": "Value"
+                    }
+                  },
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  }
+                },
+                {
+                  "value": ".",
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  }
+                }
+              ]
+            },
+            {
+              "textRuns": [
+                {
+                  "value": ""
+                }
+              ]
+            },
+            {
+              "textRuns": [
+                {
+                  "value": "Customize ",
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  }
+                },
+                {
+                  "value": "fonts ",
+                  "textStyle": {
+                    "fontFamily": "Comic Sans MS",
+                    "fontSize": "20pt"
+                  }
+                },
+                {
+                  "value": "and ",
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  }
+                },
+                {
+                  "value": "color ",
+                  "textStyle": {
+                    "fontSize": "20pt",
+                    "color": "#e044a7"
+                  }
+                },
+                {
+                  "value": "too!",
+                  "textStyle": {
+                    "fontSize": "16pt"
+                  }
+                }
+              ]
+            },
+            {
+              "textRuns": [
+                {
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "values": []
+  }
+}

@@ -1,0 +1,31 @@
+/// Product categories: one row per category. The shared dimension between fact_sales (line grain) and fact_targets (month × category grain).
+table dim_category
+	lineageTag: dce569cd-abe6-41e9-8f44-afe91399fb2c
+
+	/// Product category, e.g. Kitchen.
+	column Category
+		dataType: string
+		lineageTag: fb4fa67f-391f-4f30-8c45-e0555cb7be7c
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_category = m
+		mode: import
+		queryGroup: Model
+		source =
+				let
+					// Categories come from the product catalog
+					Source = stg_products,
+					// One row per distinct category
+					Categories = Table.Distinct(Table.SelectColumns(Source, {"category"})),
+					// Alphabetical order, so the default sort is stable
+					Sorted = Table.Sort(Categories, {{"category", Order.Ascending}}),
+					// Friendly name for the field list
+					Renamed = Table.RenameColumns(Sorted, {{"category", "Category"}})
+				in
+					Renamed
+
+	annotation PBI_ResultType = Table
+

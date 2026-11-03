@@ -1,0 +1,33 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "7e503a882a2a20a81161",
+  "position": {
+    "x": 12.751380700487031,
+    "y": 397.97730291520048,
+    "z": 1000,
+    "height": 45.636520401743056,
+    "width": 575.15438212196761,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "I can add any visual to this page! As a tooltip, it can't be selected, so slicers and scrollbars should be avoided."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

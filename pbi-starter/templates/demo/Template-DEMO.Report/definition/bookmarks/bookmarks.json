@@ -1,0 +1,13 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmarksMetadata/1.0.0/schema.json",
+  "items": [
+    {
+      "name": "9f8a447943536d96b7c5",
+      "displayName": "Slicers & Buttons chart",
+      "children": [
+        "697fe1dd1081a81d1ae4",
+        "65bcb2ddb36ccf2e9f93"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+name: Sync governance files
+
+on:
+  push:
+    paths:
+      - 'CLAUDE.md'
+      - '.claude/settings.json'
+      - 'pbiviz-starter/CLAUDE.md'
+    branches:
+      - main
+
+# The last step pushes the stamped files back to main.
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Stamp governance hashes and sync the starter copies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      # Backstop for the pre-commit hook, which is untracked and may not be installed on the
+      # machine that pushed. Both freshness checks (power-bi-dev §5, power-bi-visual-dev §7)
+      # compare against these files, so a stale hash on main silently disables them.
+      - name: Stamp report governance and sync the starter copies
+        run: |
+          sh scripts/stamp-governance.sh CLAUDE.md power-bi-skills
+          sh scripts/sync-starter.sh
+
+      - name: Stamp custom visual governance
+        run: sh scripts/stamp-governance.sh pbiviz-starter/CLAUDE.md power-bi-visual-skills
+
+      - name: Commit and Push if Changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CLAUDE.md pbi-starter/CLAUDE.md pbi-starter/.claude/settings.json pbiviz-starter/CLAUDE.md
+          if git diff --staged --quiet; then
+            echo "No changes detected in governance files"
+          else
+            git commit -m "chore(sync): stamp governance hashes and sync starter copies [skip ci]"
+            git push
+          fi

@@ -1,0 +1,169 @@
+/// Calendar: one row per day, whole years from the first order to the last order, ship date or target month.
+table dim_date
+	lineageTag: 95c39118-acd8-4041-9865-6f86193e8040
+	dataCategory: Time
+
+	/// Calendar day. Key for fact_sales[Order Date] and fact_targets[Month].
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: yyyy-mm-dd
+		lineageTag: 1811c531-329d-4c13-a898-d3edd2d07d7b
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Calendar year, e.g. 2024.
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: 59172a44-9c58-4945-89eb-c1a3995937d3
+		summarizeBy: none
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Quarter of the year, Q1 to Q4.
+	column Quarter
+		dataType: string
+		lineageTag: 5cc77130-6b7a-48f0-b669-0c2e74d3d8d3
+		summarizeBy: none
+		sourceColumn: Quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Year and quarter, e.g. 2024 Q3.
+	column 'Year Quarter'
+		dataType: string
+		lineageTag: 10eafa90-cad2-4b64-9396-e281e9b5cf7b
+		summarizeBy: none
+		sourceColumn: Year Quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Month of the year, 1 to 12. Sort key for Month Name and Month Short.
+	column 'Month Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4cb670fa-62b6-486f-996d-644b824c7678
+		summarizeBy: none
+		sourceColumn: Month Number
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Full English month name, e.g. January.
+	column 'Month Name'
+		dataType: string
+		lineageTag: 9cf6f8ac-eee6-4156-aa35-67e058dd04cf
+		summarizeBy: none
+		sourceColumn: Month Name
+		sortByColumn: 'Month Number'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Three-letter English month name, e.g. Jan.
+	column 'Month Short'
+		dataType: string
+		lineageTag: f8119240-5865-4ce6-b752-fa99b504f615
+		summarizeBy: none
+		sourceColumn: Month Short
+		sortByColumn: 'Month Number'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Month label for axes, e.g. Jan 2024.
+	column 'Year Month'
+		dataType: string
+		lineageTag: edb0e900-1791-4382-800a-94fcd84c490e
+		summarizeBy: none
+		sourceColumn: Year Month
+		sortByColumn: 'Year Month Key'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Year × 100 + month, e.g. 202401. Sort key for Year Month.
+	column 'Year Month Key'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 04941552-eee0-4662-bd72-9aebe2f915e9
+		summarizeBy: none
+		sourceColumn: Year Month Key
+
+		annotation SummarizationSetBy = Automatic
+
+	/// First day of the month.
+	column 'Month Start'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 5fd5631f-7f7c-48b5-b33b-9ebe4509195e
+		summarizeBy: none
+		sourceColumn: Month Start
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Day of the week, 1 = Monday to 7 = Sunday. Sort key for Day of Week.
+	column 'Day of Week Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2aae609f-0682-4e04-bcc4-f8c5d98208b9
+		summarizeBy: none
+		sourceColumn: Day of Week Number
+
+		annotation SummarizationSetBy = Automatic
+
+	/// English weekday name, e.g. Monday.
+	column 'Day of Week'
+		dataType: string
+		lineageTag: 569bdced-05bf-4e50-884b-73a8854e30bb
+		summarizeBy: none
+		sourceColumn: Day of Week
+		sortByColumn: 'Day of Week Number'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_date = m
+		mode: import
+		queryGroup: Model
+		source =
+				let
+					// Earliest date any fact carries: order dates and target months
+					FirstDataDate = List.Min(List.Combine({stg_orders[order_date], stg_targets[month]})),
+					// Latest date any fact carries: order dates, ship dates and target months
+					LastDataDate = List.Max(List.Combine({stg_orders[order_date], stg_orders[ship_date], stg_targets[month]})),
+					// Whole calendar years, so year-level time intelligence sees complete years
+					FirstDate = Date.StartOfYear(FirstDataDate),
+					LastDate = Date.EndOfYear(LastDataDate),
+					// One row per day
+					Dates = List.Dates(FirstDate, Duration.Days(LastDate - FirstDate) + 1, #duration(1, 0, 0, 0)),
+					DateTable = Table.FromList(Dates, Splitter.SplitByNothing(), type table [Date = date]),
+					// Calendar year
+					AddedYear = Table.AddColumn(DateTable, "Year", each Date.Year([Date]), Int64.Type),
+					// Quarter label, Q1 to Q4
+					AddedQuarter = Table.AddColumn(AddedYear, "Quarter", each "Q" & Text.From(Date.QuarterOfYear([Date])), type text),
+					// Year and quarter label; sorts correctly as text
+					AddedYearQuarter = Table.AddColumn(AddedQuarter, "Year Quarter", each Text.From([Year]) & " " & [Quarter], type text),
+					// Month number, the sort key for the month names
+					AddedMonthNumber = Table.AddColumn(AddedYearQuarter, "Month Number", each Date.Month([Date]), Int64.Type),
+					// Month names pinned to en-US so they read the same whatever the machine locale
+					AddedMonthName = Table.AddColumn(AddedMonthNumber, "Month Name", each Date.MonthName([Date], "en-US"), type text),
+					AddedMonthShort = Table.AddColumn(AddedMonthName, "Month Short", each Date.ToText([Date], [Format = "MMM", Culture = "en-US"]), type text),
+					// Month label for axes and its numeric sort key
+					AddedYearMonth = Table.AddColumn(AddedMonthShort, "Year Month", each Date.ToText([Date], [Format = "MMM yyyy", Culture = "en-US"]), type text),
+					AddedYearMonthKey = Table.AddColumn(AddedYearMonth, "Year Month Key", each [Year] * 100 + [Month Number], Int64.Type),
+					// First day of the month
+					AddedMonthStart = Table.AddColumn(AddedYearMonthKey, "Month Start", each Date.StartOfMonth([Date]), type date),
+					// Weekday number with Monday = 1, the sort key for the weekday name
+					AddedDayOfWeekNumber = Table.AddColumn(AddedMonthStart, "Day of Week Number", each Date.DayOfWeek([Date], Day.Monday) + 1, Int64.Type),
+					AddedDayOfWeek = Table.AddColumn(AddedDayOfWeekNumber, "Day of Week", each Date.DayOfWeekName([Date], "en-US"), type text)
+				in
+					AddedDayOfWeek
+
+	annotation PBI_ResultType = Table
+

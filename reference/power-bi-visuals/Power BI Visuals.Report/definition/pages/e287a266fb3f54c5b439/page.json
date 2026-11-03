@@ -1,0 +1,74 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "e287a266fb3f54c5b439",
+  "displayName": "Report 2",
+  "displayOption": "FitToPage",
+  "height": 1080,
+  "width": 1920,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "f3ce187489072d049496",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Field parameter"
+              }
+            },
+            "Property": "Field parameter"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "302e39504a1e0d060566",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "0049e6f6add7000e3daa",
+        "boundFilter": "f3ce187489072d049496",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Field parameter"
+              }
+            },
+            "Property": "Field parameter"
+          }
+        }
+      }
+    ]
+  },
+  "objects": {
+    "displayArea": [
+      {
+        "properties": {
+          "verticalAlignment": {
+            "expr": {
+              "Literal": {
+                "Value": "'Middle'"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visualInteractions": [
+    {
+      "source": "80260bf8dc06d4776730",
+      "target": "c0a7d6484cfcf69bdd12",
+      "type": "DataFilter"
+    },
+    {
+      "source": "80260bf8dc06d4776730",
+      "target": "8714b05e19d3b9ad5abc",
+      "type": "HighlightFilter"
+    }
+  ]
+}

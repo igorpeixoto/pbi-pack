@@ -1,0 +1,157 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "9218b74525a2239d0db1",
+  "position": {
+    "x": 1105.5023915414954,
+    "y": 658.89334564068133,
+    "z": 4000,
+    "height": 366.56742468742129,
+    "width": 561.45137198959469,
+    "tabOrder": 10
+  },
+  "visual": {
+    "visualType": "barChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Financials"
+                    }
+                  },
+                  "Property": "Segment"
+                }
+              },
+              "queryRef": "Financials.Segment",
+              "nativeQueryRef": "Segment1",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Calculations"
+                    }
+                  },
+                  "Property": "Sales"
+                }
+              },
+              "queryRef": "Financials.Total Sales",
+              "nativeQueryRef": "Total Sales"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Calculations"
+                  }
+                },
+                "Property": "Sales"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "dataPoint": [
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "visualHeader": [
+        {
+          "properties": {
+            "showTooltipButton": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeaderTooltip": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Title Total Sales Top Segment = \n        VAR _Summary =\n            SUMMARIZECOLUMNS(\n                ''Financials''[Segment],\n                \"Total Sales\", [Total Sales]\n            )\n        VAR _TopSegment =\n            TOPN(\n                1,\n                _Summary,\n                [Total Sales],\n                DESC\n            )\n        VAR _SegmentName =\n            MAXX(\n                _TopSegment,\n                ''Financials''[Segment]\n            )\n        VAR _TopSales =\n            MAXX(\n                _TopSegment,\n                [Total Sales]\n            )\n        // Total sales in the current filter context (all segments combined)\n        VAR _TotalSales =\n            [Total Sales]\n        RETURN\n            IF(\n                ISBLANK(_SegmentName),\n                // Fallback when no segment is available\n                \"Total sales is \"\n                    & FORMAT(_TotalSales, \"$#,0\"),\n                // Main pattern: \"[segment] ($#) is the top segment and total sales is $#\"\n                _SegmentName\n                    & \" (\"\n                    & FORMAT(_TopSales, \"$#,0\")\n                    & \") is the top segment and total sales is \"\n                    & FORMAT(_TotalSales, \"$#,0\")\n            )'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Formatting"
+                    }
+                  },
+                  "Property": "Title Total Sales Top Segment"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Conditional formatting the title/subtitle via field value.'"
+                }
+              }
+            },
+            "titleWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "client": "Quillmere Goods",
+  "title": "Quillmere Goods",
+  "theme_name": "Quillmere Neutral",
+  "source": {
+    "kind": "improvised",
+    "ref": "Neutral demo palette for an invented company; no client brand. Primary and secondary pass the dataviz separation and contrast checks; secondary is a deliberate low-chroma context gray, so it fails the categorical chroma floor by design."
+  },
+  "colors": {
+    "primary": "#1F5FA8",
+    "secondary": "#8A94A6",
+    "accent": "#2A9D8F",
+    "text": "#1F2937",
+    "neutral_dark": "#334155",
+    "header": "#1F2A3A",
+    "neutral_mid": "#94A3B8",
+    "table_header": "#1F2A3A",
+    "page": "#F3F5F8",
+    "row_alt": "#F7F9FB",
+    "border": "#E2E8F0",
+    "text_muted": "#5B6573",
+    "good": "#2F8F6D",
+    "bad": "#C8403B",
+    "series": [
+      "#D9692E",
+      "#7E57C2",
+      "#B7791F",
+      "#C2406B"
+    ]
+  },
+  "fonts": {
+    "report": "Segoe UI",
+    "report_semibold": "Segoe UI Semibold"
+  },
+  "logos": {},
+  "literals": {
+    "variance_low": "#E8A19E",
+    "variance_high": "#9FD3BF"
+  },
+  "parameters": {},
+  "header_icons_on": []
+}

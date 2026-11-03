@@ -1,0 +1,511 @@
+<!--
+  pbi-sync Runbook — operating reference for the OneDrive publish workflow.
+  Self-contained: open this file in any browser. GitHub shows the source, not the page.
+
+  The charset and viewport tags below are here for that local-file case. Opened from
+  disk there is no server sending a Content-Type header, so without the charset the
+  accented text renders as mojibake (Evolução, Pendências, the em dashes).
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pbi-sync Runbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+
+<style>
+  :root {
+    --ground:      #EFF2F4;
+    --surface:     #FFFFFF;
+    --surface-2:   #E4EAED;
+    --rule:        #CBD5DA;
+    --rule-soft:   #DEE5E9;
+    --ink:         #141A1E;
+    --ink-2:       #48565E;
+    --ink-3:       #6F808A;
+    --accent:      #1C5D66;
+    --accent-soft: #DCEBED;
+    --pass:        #2E6B47;
+    --pass-soft:   #DFEDE4;
+    --warn:        #8A5A0F;
+    --warn-soft:   #F4EAD6;
+    --stop:        #9B3226;
+    --stop-soft:   #F6E1DD;
+
+    --shadow: 0 1px 2px rgba(20,26,30,.05), 0 10px 28px -20px rgba(20,26,30,.35);
+
+    --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #0E1215;
+      --surface:     #161C20;
+      --surface-2:   #1E262B;
+      --rule:        #2E3A40;
+      --rule-soft:   #252F35;
+      --ink:         #E4EBEF;
+      --ink-2:       #A2B1B9;
+      --ink-3:       #78878F;
+      --accent:      #63B2BC;
+      --accent-soft: #14343A;
+      --pass:        #62B584;
+      --pass-soft:   #142A1D;
+      --warn:        #D5A254;
+      --warn-soft:   #2C2313;
+      --stop:        #E08578;
+      --stop-soft:   #321A16;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -20px rgba(0,0,0,.8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #0E1215;
+    --surface:     #161C20;
+    --surface-2:   #1E262B;
+    --rule:        #2E3A40;
+    --rule-soft:   #252F35;
+    --ink:         #E4EBEF;
+    --ink-2:       #A2B1B9;
+    --ink-3:       #78878F;
+    --accent:      #63B2BC;
+    --accent-soft: #14343A;
+    --pass:        #62B584;
+    --pass-soft:   #142A1D;
+    --warn:        #D5A254;
+    --warn-soft:   #2C2313;
+    --stop:        #E08578;
+    --stop-soft:   #321A16;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -20px rgba(0,0,0,.8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 16.5px;
+    line-height: 1.62;
+    margin: 0;
+    padding: 0 20px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+
+  /* ---------- masthead ---------- */
+
+  header.top { padding-top: 56px; display: flex; flex-direction: column; gap: 16px; }
+
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  }
+  .eyebrow b { color: var(--accent); font-weight: 500; }
+
+  h1 {
+    font-family: var(--f-display);
+    font-size: clamp(34px, 6vw, 50px);
+    font-weight: 700;
+    letter-spacing: -.025em;
+    line-height: 1.04;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .standfirst { font-size: 18px; color: var(--ink-2); max-width: 62ch; margin: 0; }
+
+  /* ---------- contents ---------- */
+
+  nav.toc {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  nav.toc h2 {
+    font-family: var(--f-mono);
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 12px; font-weight: 500;
+  }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 7px 26px; counter-reset: toc; }
+  nav.toc li { counter-increment: toc; display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: 15px; }
+  nav.toc li::before {
+    content: counter(toc);
+    font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-3);
+    padding-top: 4px; font-variant-numeric: tabular-nums;
+  }
+  nav.toc a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  nav.toc a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ---------- sections ---------- */
+
+  section { display: flex; flex-direction: column; gap: 18px; scroll-margin-top: 20px; }
+
+  .sec-head { border-bottom: 2px solid var(--ink); padding-bottom: 8px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .sec-head h2 {
+    font-family: var(--f-display);
+    font-size: 25px; font-weight: 700; letter-spacing: -.018em; margin: 0;
+  }
+  .sec-head .num {
+    font-family: var(--f-mono); font-size: 12px; color: var(--accent);
+    font-variant-numeric: tabular-nums; font-weight: 700;
+  }
+  .sec-head .aside { margin-left: auto; font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-3); }
+
+  h3 {
+    font-family: var(--f-display);
+    font-size: 17px; font-weight: 600; letter-spacing: -.005em;
+    margin: 10px 0 -6px;
+  }
+
+  p { margin: 0; max-width: 68ch; }
+  p.lead { color: var(--ink-2); }
+
+  code {
+    font-family: var(--f-mono);
+    font-size: .86em;
+    background: var(--surface-2);
+    border-radius: 2px;
+    padding: 1.5px 5px;
+    color: var(--ink);
+    word-break: break-word;
+  }
+
+  pre {
+    font-family: var(--f-mono);
+    font-size: 13px;
+    line-height: 1.75;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 15px 18px;
+    margin: 0;
+    overflow-x: auto;
+    color: var(--ink);
+    white-space: pre;
+  }
+  pre .c { color: var(--ink-3); }
+  pre b { color: var(--accent); font-weight: 500; }
+
+  /* ---------- callout ---------- */
+
+  .call {
+    border-radius: 3px;
+    padding: 14px 17px;
+    display: flex; flex-direction: column; gap: 7px;
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    font-size: 15.5px;
+  }
+  .call.stop { border-left-color: var(--stop); background: var(--stop-soft); }
+  .call.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+  .call .lbl {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .13em;
+    text-transform: uppercase; font-weight: 700; color: var(--accent);
+  }
+  .call.stop .lbl { color: var(--stop); }
+  .call.warn .lbl { color: var(--warn); }
+  .call p { max-width: none; }
+
+  /* ---------- tables ---------- */
+
+  .tw { overflow-x: auto; border: 1px solid var(--rule); border-radius: 3px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+  th {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .11em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 500;
+    background: var(--surface-2); border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: 0; }
+  td code { font-size: .84em; }
+
+  /* ---------- gate list ---------- */
+
+  ol.gates { list-style: none; margin: 0; padding: 0; counter-reset: g; display: flex; flex-direction: column; }
+  ol.gates li {
+    counter-increment: g;
+    display: grid; grid-template-columns: 30px 1fr; gap: 14px;
+    padding: 13px 0; border-bottom: 1px solid var(--rule-soft);
+  }
+  ol.gates li:last-child { border-bottom: 0; }
+  ol.gates li::before {
+    content: counter(g);
+    font-family: var(--f-mono); font-size: 11px; font-weight: 700;
+    color: var(--accent); background: var(--accent-soft);
+    border-radius: 2px; text-align: center; padding: 3px 0; line-height: 1.35;
+    height: fit-content; font-variant-numeric: tabular-nums;
+  }
+  ol.gates .g-name { font-weight: 600; }
+  ol.gates .g-fail { color: var(--ink-2); font-size: 15px; display: block; margin-top: 2px; }
+
+  /* ---------- plain step list ---------- */
+
+  ol.steps { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 9px; }
+  ol.steps li { padding-left: 4px; }
+  ol.steps li::marker { font-family: var(--f-mono); font-size: 13px; color: var(--accent); }
+
+  ul.plain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  ul.plain li { display: grid; grid-template-columns: 9px 1fr; gap: 13px; align-items: start; max-width: 70ch; }
+  ul.plain li::before {
+    content: ""; width: 6px; height: 6px; margin-top: 10px;
+    border: 1.5px solid var(--ink-3); border-radius: 50%;
+  }
+
+  .slugs { display: flex; flex-wrap: wrap; gap: 7px; }
+  .slugs span {
+    font-family: var(--f-mono); font-size: 12.5px;
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 2px; padding: 4px 9px; color: var(--ink-2);
+  }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+    line-height: 1.85;
+  }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">
+      <span>Power BI operations</span><span>·</span>
+      <span><b>C:\dev</b></span><span>·</span>
+            <span>2026-08-28</span>
+    </div>
+    <h1>pbi-sync Runbook</h1>
+    <p class="standfirst">Everything you edit lives on local disk. OneDrive only ever receives, and only from
+      <code>pbi-publish</code>. This page is the lookup for when that stops being obvious.</p>
+  </header>
+
+  <nav class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#daily">Where to start Claude</a></li>
+      <li><a href="#publish">Publishing a change</a></li>
+      <li><a href="#gates">When a gate stops you</a></li>
+      <li><a href="#pull">Someone edited the deliverable</a></li>
+      <li><a href="#machine">Setting up another machine</a></li>
+      <li><a href="#newproject">Adding a new project</a></li>
+      <li><a href="#trouble">Troubleshooting</a></li>
+      <li><a href="#never">Never do these</a></li>
+    </ol>
+  </nav>
+
+  <section id="daily">
+    <div class="sec-head"><span class="num">01</span><h2>Where to start Claude</h2><span class="aside">the one that matters</span></div>
+    <p class="lead">Open Claude from the repo you are editing. The session hook resolves the project from your
+      working directory, so starting elsewhere means no warning about unpublished work or drift.</p>
+
+    <div class="tw"><table>
+      <thead><tr><th>Working on</th><th>Start in</th></tr></thead>
+      <tbody>
+        <tr><td>Skills, <code>CLAUDE.md</code>, starters, the pack itself</td><td><code>C:\dev\pbi-pack</code></td></tr>
+        <tr><td>A report project</td><td><code>C:\dev\pbi\&lt;slug&gt;</code></td></tr>
+        <tr><td>The custom visual</td><td><code>C:\dev\pbi-visuals\combo-matrix-visual</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Example project slugs</h3>
+    <div class="slugs">
+      <span>sales-report</span><span>ops-dashboard</span>
+    </div>
+
+    <p>Power BI Desktop opens the <code>.pbip</code> from the same folder. Never from OneDrive.</p>
+  </section>
+
+  <section id="publish">
+    <div class="sec-head"><span class="num">02</span><h2>Publishing a change</h2></div>
+
+    <ol class="steps">
+      <li><b>Close Power BI Desktop.</b> The first gate checks for it and will stop you.</li>
+      <li>Commit your work. A publish has to map to a commit.</li>
+      <li>Run the publish.</li>
+    </ol>
+
+<pre><span class="c"># from inside the project folder — the slug is inferred</span>
+sh ~/.claude/pbi-sync/bin/<b>pbi-publish.sh</b>
+
+<span class="c"># or name it, from anywhere</span>
+sh ~/.claude/pbi-sync/bin/<b>pbi-publish.sh</b> sales-report
+
+<span class="c"># see what would change without touching anything</span>
+sh ~/.claude/pbi-sync/bin/<b>pbi-publish.sh</b> sales-report --dry-run</pre>
+
+    <h3>Checking state at any time</h3>
+<pre>sh ~/.claude/pbi-sync/bin/<b>pbi-status.sh</b>            <span class="c"># all projects</span>
+sh ~/.claude/pbi-sync/bin/<b>pbi-status.sh</b> sales-report    <span class="c"># one</span></pre>
+    <p>Read-only. It reports unpublished commits, OneDrive drift, whether Desktop is open, and any held lock.</p>
+
+    <div class="call">
+      <span class="lbl">Flags you will rarely need</span>
+      <p><code>--init</code> — first publish into a target, or one whose deliverable repo must be rebuilt.
+      <code>--force-overwrite</code> — publish over drift, <em>discarding</em> whatever changed there.
+      <code>--min-ratio N</code> — lower the file-count floor when a big deletion is genuinely intended.</p>
+    </div>
+  </section>
+
+  <section id="gates">
+    <div class="sec-head"><span class="num">03</span><h2>When a gate stops you</h2><span class="aside">nothing is written until all pass</span></div>
+    <p class="lead">The publish aborts before touching OneDrive. Each stop means something specific.</p>
+
+    <ol class="gates">
+      <li><span><span class="g-name">Power BI Desktop is running</span>
+        <span class="g-fail">Close it. Desktop holds file locks and rewrites <code>.pbi/</code> caches mid-copy.</span></span></li>
+      <li><span><span class="g-name">The local repo has uncommitted changes</span>
+        <span class="g-fail">Commit or stash. Without a commit there is nothing to roll back to.</span></span></li>
+      <li><span><span class="g-name">Tooling reached the deliverable</span>
+        <span class="g-fail">Something matched <code>claude</code> or <code>gemini</code> in a published file — often a
+        <code>CLAUDE.md</code> citation inside an M or DAX comment. Fix it at the source, not with the override flag.</span></span></li>
+      <li><span><span class="g-name">Structural check failed</span>
+        <span class="g-fail">Missing <code>.pbip</code>, missing <code>model.tmdl</code>, or no report pages. The build is broken — do not publish around it.</span></span></li>
+      <li><span><span class="g-name">The deliverable collapsed</span>
+        <span class="g-fail">File count dropped below 60% of the last publish. Usually a broken build. If the deletion is real, re-run with <code>--min-ratio</code>.</span></span></li>
+      <li><span><span class="g-name">The OneDrive side drifted</span>
+        <span class="g-fail">Someone edited the deliverable directly. Go to section 04 — do not reach for <code>--force-overwrite</code> to make it quiet.</span></span></li>
+      <li><span><span class="g-name">Post-copy verification failed</span>
+        <span class="g-fail">The target does not match staging. The snapshot has already been restored automatically; the message names it.</span></span></li>
+    </ol>
+
+    <div class="call warn">
+      <span class="lbl">Rollback</span>
+      <p>Every publish snapshots the target to <code>~/.claude/pbi-sync/snapshots/&lt;slug&gt;-&lt;timestamp&gt;/</code> first,
+      keeping the last three. The deliverable is also its own git repo — <code>git log</code> there shows one commit per publish.</p>
+    </div>
+  </section>
+
+  <section id="pull">
+    <div class="sec-head"><span class="num">04</span><h2>Someone edited the deliverable</h2></div>
+    <p class="lead">Rare, but it happens. The pull lands their work on a review branch in your repo instead of
+      overwriting either side.</p>
+
+<pre>sh ~/.claude/pbi-sync/bin/<b>pbi-pull.sh</b> sales-report
+
+<span class="c"># it creates onedrive-pull/&lt;timestamp&gt; and leaves you on it</span>
+git diff main..onedrive-pull/&lt;timestamp&gt;
+git switch main &amp;&amp; git merge onedrive-pull/&lt;timestamp&gt;</pre>
+
+    <p>Then publish normally. Same preconditions: Desktop closed, local tree clean.</p>
+  </section>
+
+  <section id="machine">
+    <div class="sec-head"><span class="num">05</span><h2>Setting up another machine</h2></div>
+
+<pre>git clone https://github.com/&lt;owner&gt;/pbi-pack.git C:/dev/pbi-pack
+cd /c/dev/pbi-pack
+sh scripts/<b>install-hooks.sh</b>       <span class="c"># .git/hooks are never cloned</span>
+sh scripts/<b>sync-skills.sh</b>         <span class="c"># skills/ -&gt; ~/.claude/skills/</span>
+sh scripts/<b>install-pbi-sync.sh</b>    <span class="c"># tooling + session hooks -&gt; ~/.claude/</span></pre>
+
+    <p>Then, per project:</p>
+
+<pre>git clone &lt;remote&gt; C:/dev/pbi/&lt;slug&gt;
+sh ~/.claude/pbi-sync/bin/<b>pbi-register.sh</b> &lt;slug&gt; C:/dev/pbi/&lt;slug&gt; "&lt;onedrive path&gt;"</pre>
+
+    <div class="call stop">
+      <span class="lbl">Do not copy the registry</span>
+      <p><code>projects.json</code> embeds this machine's Windows profile name in every OneDrive path. Copied to a machine
+      where the account is named differently, it points publishes at folders that do not exist. Re-register instead —
+      three arguments per project.</p>
+    </div>
+
+    <p><code>~/.claude/pbi-sync/state/</code> is per-machine too. On a fresh machine every project reads as
+      never-published until its first publish, and the drift gate will refuse <code>--init</code> against a folder that is
+      already a deliverable repo. That is correct — reconcile with <code>pbi-pull.sh</code>.</p>
+
+    <div class="call warn">
+      <span class="lbl">If the network blocks outbound SSH</span>
+      <p>Outbound port 22 is blocked, so <code>git@github.com:</code> remotes hang for two minutes and fail while HTTPS
+      ones work — which reads as a per-repo fault. Add this to <code>~/.ssh/config</code> <em>before</em> cloning:</p>
+<pre>Host github.com
+  Hostname ssh.github.com
+  Port 443
+  User git</pre>
+    </div>
+  </section>
+
+  <section id="newproject">
+    <div class="sec-head"><span class="num">06</span><h2>Adding a new project</h2></div>
+    <ol class="steps">
+      <li>Start Claude in <code>C:\dev\pbi-pack</code> and let <b>power-bi-dev</b> run step zero.</li>
+      <li>Scaffold from <code>pbi-starter/</code> into <code>C:\dev\pbi\&lt;slug&gt;</code> — never into OneDrive.</li>
+      <li>Fill <code>README.client.md</code>. It publishes <em>as</em> <code>README.md</code>; the repo's own
+        <code>README.md</code> is tooling and stays local.</li>
+      <li>Confirm <code>.gitattributes</code> is present — Hard Rule 19, or every Desktop save becomes a full-file diff.</li>
+      <li>Keep <code>CHANGELOG.md</code> free of tooling entries. It ships to the client.</li>
+      <li>Register it, then <code>pbi-publish.sh &lt;slug&gt; --init</code>.</li>
+    </ol>
+  </section>
+
+  <section id="trouble">
+    <div class="sec-head"><span class="num">07</span><h2>Troubleshooting</h2></div>
+    <div class="tw"><table>
+      <thead><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td><code>git push</code> hangs ~2 min, then fails — but only on some repos</td>
+            <td>Port 22 blocked; those repos use SSH remotes, the working ones use HTTPS</td>
+            <td>Add the SSH-over-443 block to <code>~/.ssh/config</code></td></tr>
+        <tr><td><code>fatal: mmap failed: Invalid argument</code></td>
+            <td>Git repo corruption — files inside <code>.git/</code> that exist but cannot be read</td>
+            <td>Run <code>git fsck</code>, delete the named unreadable files if they hold nothing unique, re-fetch tags</td></tr>
+        <tr><td>Mass of modified files, empty <code>git diff</code></td>
+            <td>CRLF flip from a Desktop save</td>
+            <td>Check <code>git ls-files --eol</code>. If <code>.gitattributes</code> is missing, add it and renormalize as its own commit</td></tr>
+        <tr><td>Publish says a registered project is not in the registry</td>
+            <td>Fixed — was a stray carriage return from Windows Python</td>
+            <td>Re-run <code>install-pbi-sync.sh</code> to get the current scripts</td></tr>
+        <tr><td>Custom visual renders as an empty rectangle</td>
+            <td>A changed GUID broke every field binding</td>
+            <td>Never regenerate <code>visual.guid</code>. Re-import the correct build</td></tr>
+        <tr><td>Refresh fails naming an unrelated table</td>
+            <td>One table's error cancels the whole load</td>
+            <td>Look for duplicate keys on the one-side of a relationship, not at the table named</td></tr>
+        <tr><td>Lock held by a dead run</td>
+            <td>A publish crashed mid-flight</td>
+            <td>Reclaims itself after 2 h, or remove <code>~/.claude/pbi-sync/locks/&lt;slug&gt;.lock</code></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="never">
+    <div class="sec-head"><span class="num">08</span><h2>Never do these</h2></div>
+    <ul class="plain">
+      <li><b>Never open Claude or Power BI Desktop on a <code>OneDrive - &lt;Org&gt;</code> path.</b> Those folders are publish
+        targets. Anything you do there shows up as drift and blocks the next publish.</li>
+      <li><b>Never <code>git init</code> or edit files in a deliverable folder.</b> <code>pbi-publish</code> is its only writer.</li>
+      <li><b>Never edit the scripts in <code>~/.claude/pbi-sync/bin/</code>.</b> They are installed copies. Edit
+        <code>scripts/pbi-sync/</code> in the pack; the pre-commit hook reinstalls them.</li>
+      <li><b>Never use <code>--force-overwrite</code> to silence a drift warning.</b> It discards someone's work. Pull first.</li>
+      <li><b>Never edit TMDL with <code>sed</code> or a heredoc.</b> Indentation is tab-sensitive and silently becomes spaces.</li>
+      <li><b>Never commit a model change as validated without a Desktop refresh.</b> Git accepts text in any state; only
+        Desktop proves the model loads.</li>
+    </ul>
+  </section>
+
+
+  <footer>
+    Working repos: C:\dev\pbi-pack · C:\dev\pbi\&lt;slug&gt; · C:\dev\pbi-visuals\combo-matrix-visual<br>
+    Tooling: ~/.claude/pbi-sync/ — canonical source in the pack at scripts/pbi-sync/<br>
+    Governance: CLAUDE.md Hard Rule 22 — the OneDrive folder is a publish target, never a working copy
+  </footer>
+
+</div>

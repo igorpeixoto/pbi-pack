@@ -1,0 +1,26 @@
+#!/bin/sh
+# Git post-merge hook: refresh everything this pack installs under ~/.claude/ after a pull.
+#
+# This file is the tracked source of truth. Install with: sh scripts/install-hooks.sh
+#
+# Why this exists: pre-commit only fires on `git commit`. On a second machine you never commit,
+# you only pull (by hand, or automatically from the SessionStart hook) — so without this, the
+# runtime copies there stay behind indefinitely.
+#
+# Guarded to main on purpose: ~/.claude/ is personal scope and loads in EVERY project on this
+# machine, so a feature branch's half-finished skills must not leak out of this repo.
+
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+cd "$ROOT" || exit 0
+
+branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo "")
+[ "$branch" = "main" ] || exit 0
+
+# What the merge changed; with no ORIG_HEAD, treat everything as changed.
+if git rev-parse --quiet --verify ORIG_HEAD >/dev/null 2>&1; then
+    CHANGED=$(git diff --name-only ORIG_HEAD HEAD)
+else
+    CHANGED="ALL"
+fi
+
+sh scripts/sync-home.sh "Git Hook" "$CHANGED"

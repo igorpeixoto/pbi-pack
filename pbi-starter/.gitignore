@@ -1,0 +1,29 @@
+# OS & System Junk
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+
+# Backups folder
+# The backup policy (power-bi-dev, power-bi-deployment) writes full copies of the
+# SemanticModel/Report definition folders here before destructive operations. They are
+# local safety nets, not shared project state.
+backups/
+
+# Power BI Desktop local/session files (machine-specific, not shared project state)
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+*.pbi.json
+
+# Claude Code personal overrides
+.claude/settings.local.json
+
+# OneDrive sync conflict copies
+# If this project lives in a OneDrive-synced folder, editing it from two machines produces
+# stale duplicates of tracked files (e.g. model-<account>.tmdl). They must never be committed.
+# Uncomment and fill in your own OneDrive account suffix the first time one appears:
+# *-<your-onedrive-account>.*
+*conflicted copy*
+
+# Brand preview written by power-bi-themes preview_brand.py - regenerated on demand, never published
+assets/preview.html

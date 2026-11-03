@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Revenue",
+  "name": "697fe1dd1081a81d1ae4",
+  "options": {
+    "applyOnlyToTargetVisuals": true,
+    "targetVisualNames": [
+      "6a3d35f7896db9c9b8ef",
+      "639572169b220afef0dd"
+    ],
+    "suppressData": true
+  },
+  "explorationState": {
+    "version": "1.0",
+    "activeSection": "4790aeed425287af258e",
+    "sections": {
+      "4790aeed425287af258e": {
+        "visualContainers": {
+          "6a3d35f7896db9c9b8ef": {
+            "singleVisual": {
+              "visualType": "columnChart",
+              "objects": {}
+            }
+          },
+          "639572169b220afef0dd": {
+            "singleVisual": {
+              "visualType": "barChart",
+              "objects": {},
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

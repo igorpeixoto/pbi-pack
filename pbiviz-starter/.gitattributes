@@ -1,0 +1,27 @@
+# A custom visual repo is TypeScript + JSON, reviewed as text. Windows editors and the
+# pbiviz toolchain both resave with CRLF, which turns every touched file into a full-file
+# diff with no real content change. Force LF in the repo regardless of the client's
+# core.autocrlf so diffs stay meaningful on any OS.
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
+# .resjson holds the stringResources/<locale>/ localization tables that pbiviz package reads
+# to decide which Globalize culture data to bundle — not covered by *.json.
+*.resjson text eol=lf
+*.less text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+# The repo-config dotfiles themselves are text too; without these lines git warns about
+# converting them on every touch, which is the exact noise this file exists to remove.
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# Binary artifacts — never diffed, never line-ending-normalized.
+*.pbiviz binary
+*.png binary
+*.svg text eol=lf

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainerMobileState/2.9.0/schema.json",
+  "position": {
+    "x": 0,
+    "y": 100,
+    "z": 4000,
+    "height": 293,
+    "width": 324,
+    "tabOrder": 15
+  },
+  "objects": {
+    "columnFormatting": [],
+    "values": [],
+    "columnWidth": [
+      {
+        "properties": {
+          "value": {
+            "expr": {
+              "Literal": {
+                "Value": "77D"
+              }
+            }
+          }
+        },
+        "selector": {
+          "metadata": "Financials.Profit per Unit"
+        }
+      }
+    ],
+    "columnHeaders": [
+      {
+        "properties": {}
+      }
+    ]
+  }
+}

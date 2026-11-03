@@ -1,0 +1,62 @@
+/// Revenue targets: one row per month and category.
+table fact_targets
+	lineageTag: ddb615df-fab7-498e-bcda-bb15b47c63ff
+
+	/// First day of the target month. Joins dim_date[Date].
+	column Month
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		lineageTag: 3443a35d-4101-4e3e-859d-7585f10849eb
+		summarizeBy: none
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Product category the target applies to. Joins dim_category[Category].
+	column Category
+		dataType: string
+		isHidden
+		lineageTag: 2fe29126-d940-4318-ab2d-a07d0e6ae6d3
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Revenue target for the month and category, on the same definition as Revenue.
+	column 'Revenue Target'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 2214fc00-a0ba-4673-881b-0c315f7c20d1
+		summarizeBy: sum
+		sourceColumn: Revenue Target
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_targets = m
+		mode: import
+		queryGroup: Model
+		source =
+				let
+					// Typed, guarded targets from staging
+					Source = stg_targets,
+					// Guard: every target category must exist in the product catalog, or its target would sit on a blank category
+					KnownCategories = List.Distinct(stg_products[category]),
+					UnknownCategories = List.Difference(List.Distinct(Source[category]), KnownCategories),
+					GuardedCategory =
+						if List.IsEmpty(UnknownCategories) then Source
+						else error Error.Record("Unknown target category", "targets.csv has categories missing from products.csv: " & Text.Combine(List.Transform(UnknownCategories, Text.From), ", ")),
+					// Friendly names for the field list
+					Renamed = Table.RenameColumns(GuardedCategory, {
+						{"month", "Month"},
+						{"category", "Category"},
+						{"revenue_target", "Revenue Target"}
+					})
+				in
+					Renamed
+
+	annotation PBI_ResultType = Table
+

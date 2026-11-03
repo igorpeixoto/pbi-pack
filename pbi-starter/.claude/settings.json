@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "$comment": "Pre-approved permissions for Power BI PBIP / TMDL projects. Rules are glob-matched; trailing ' *' allows arguments.",
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Edit(**)",
+
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git show *)",
+      "Bash(git grep *)",
+      "Bash(git merge-base *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git branch *)",
+      "Bash(git switch *)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(git tag *)",
+      "Bash(git stash *)",
+      "Bash(git restore *)",
+      "Bash(git mv *)",
+      "Bash(git push *)",
+
+      "Bash(ls *)",
+      "Bash(dir *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(wc *)",
+      "Bash(diff *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(pwd)",
+      "Bash(echo *)",
+
+      "Bash(awk *)",
+      "Bash(sort *)",
+      "Bash(uniq *)",
+      "Bash(gh *)",
+
+      "Bash(python *)",
+      "Bash(python3 *)",
+
+      "Bash(pip install pipx)",
+      "Bash(pipx ensurepath)",
+      "Bash(pipx install *)",
+
+      "Bash(pbi connect *)",
+      "Bash(pbi dax execute *)",
+      "Bash(pbi report validate *)",
+      "Bash(pbi model get *)",
+      "Bash(pbi model stats *)",
+      "Bash(pbi table list *)",
+      "Bash(pbi column list *)",
+      "Bash(pbi measure get *)",
+      "Bash(pbi measure list *)",
+      "Bash(pbi relationship list *)",
+
+      "Bash(tasklist *)"
+    ],
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Bash(rm -rf *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Read(.env)",
+      "Read(**/.env)",
+      "Read(**/secrets/**)"
+    ]
+  }
+}

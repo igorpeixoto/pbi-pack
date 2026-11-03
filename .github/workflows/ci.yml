@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  denylist:
+    name: Forbidden terms
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      # Forks don't get the secret, so an empty one has to skip, not fail: a blank line in the list
+      # is a blank pattern, and git grep -f matches every line with it. CRs go too, because a pasted
+      # "term\r" would silently never match.
+      - name: Write the list from the DENYLIST secret
+        env:
+          DENYLIST: ${{ secrets.DENYLIST }}
+        run: |
+          if [ -n "$DENYLIST" ]; then
+            printf '%s\n' "$DENYLIST" | tr -d '\r' | sed '/^[[:space:]]*$/d' > .denylist
+          else
+            echo "::notice::DENYLIST secret not set, skipping the check"
+          fi
+
+      - name: Check tracked files
+        run: sh scripts/check-denylist.sh
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    # gitleaks lists a pull request's commits through the API
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This token can't write comments; findings go to the job summary
+          GITLEAKS_ENABLE_COMMENTS: false
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+
+      # git's * also matches across /, so this covers scripts/ and every folder below it
+      - name: Run shellcheck
+        run: |
+          shellcheck --version
+          git ls-files -z 'scripts/*.sh' | xargs -0 shellcheck -x
+
+      - name: Compile Python
+        run: git ls-files -z '*.py' | xargs -0 python -m py_compile
+
+      - name: Run ruff
+        run: |
+          pip install ruff==0.17.3
+          ruff check .
+
+      - name: Parse JSON
+        run: |
+          git ls-files -z '*.json' | python -c "
+          import json, sys
+          files = sys.stdin.read().split('\0')[:-1]
+          for path in files:
+              with open(path, encoding='utf-8') as f:
+                  try:
+                      json.load(f)
+                  except ValueError as e:
+                      sys.exit(f'{path}: {e}')
+          print(f'{len(files)} JSON files parsed')
+          "
+
+  data-tests:
+    name: Data tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      # 3.14 because the numpy pinned in demo/requirements.txt was only verified there
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+
+      - name: Install dependencies
+        run: pip install -r demo/requirements.txt pytest
+
+      - name: Run pytest
+        run: pytest -q

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "Fluent2-CY26SU10",
+      "reportVersionAtImport": {
+        "visual": "2.14.0",
+        "report": "3.4.0",
+        "page": "2.3.1"
+      },
+      "type": "SharedResources"
+    }
+  },
+  "objects": {
+    "section": [
+      {
+        "properties": {
+          "verticalAlignment": {
+            "expr": {
+              "Literal": {
+                "Value": "'Top'"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspacePane": [
+      {
+        "properties": {
+          "expanded": {
+            "expr": {
+              "Literal": {
+                "Value": "false"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "resourcePackages": [
+    {
+      "name": "SharedResources",
+      "type": "SharedResources",
+      "items": [
+        {
+          "name": "australia.states.topo",
+          "path": "Shapemaps/australia.states.topo.json",
+          "type": "ShapeMap"
+        },
+        {
+          "name": "Fluent2-CY26SU10",
+          "path": "BaseThemes/Fluent2-CY26SU10.json",
+          "type": "BaseTheme"
+        },
+        {
+          "name": "usa.states.topo",
+          "path": "Shapemaps/usa.states.topo.json",
+          "type": "ShapeMap"
+        }
+      ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "power_bi_16_color12750934393068414.png",
+          "path": "power_bi_16_color12750934393068414.png",
+          "type": "Image"
+        },
+        {
+          "name": "power_bi_16_color26326165379322697.png",
+          "path": "power_bi_16_color26326165379322697.png",
+          "type": "Image"
+        },
+        {
+          "name": "power_bi_16_color3063037591281106.png",
+          "path": "power_bi_16_color3063037591281106.png",
+          "type": "Image"
+        },
+        {
+          "name": "power_bi_16_color7832287877771655.png",
+          "path": "power_bi_16_color7832287877771655.png",
+          "type": "Image"
+        },
+        {
+          "name": "power_bi_16_color8295646238170968.png",
+          "path": "power_bi_16_color8295646238170968.png",
+          "type": "Image"
+        },
+        {
+          "name": "visual-calcs8167611783351457.png",
+          "path": "visual-calcs8167611783351457.png",
+          "type": "Image"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "useStylableVisualContainerHeader": true,
+    "exportDataMode": "AllowSummarized",
+    "defaultFilterActionIsDataFilter": true,
+    "defaultDrillFilterOtherVisuals": true,
+    "allowChangeFilterTypes": true,
+    "allowInlineExploration": true,
+    "useEnhancedTooltips": true,
+    "useDefaultAggregateDisplayName": true,
+    "customMemoryLimit": "1048576",
+    "customTimeoutLimit": "225"
+  }
+}

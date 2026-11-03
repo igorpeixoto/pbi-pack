@@ -1,0 +1,42 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "6a7a81d7046d125cc2f3",
+  "position": {
+    "x": 985.88353505366524,
+    "y": 89.795843799954326,
+    "z": 24000,
+    "height": 106.63256451244577,
+    "width": 432.1424982872802,
+    "tabOrder": 145
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "The "
+                  },
+                  {
+                    "value": "button slicer",
+                    "textStyle": {
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": " offers a more customizable button or tile slicer with other options such as adding a measure to show a value and let's it highlight the value when filtered from another visual. Try selecting a column in the bar chart to see this in action. Images can also be added."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

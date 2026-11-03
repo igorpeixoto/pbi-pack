@@ -1,0 +1,175 @@
+/// Every measure in the model. Holds no data: its one column is a hidden placeholder.
+table _Measures
+	lineageTag: f48e4e73-83c3-4375-9d66-b7b9e964ddc9
+
+	/// Net revenue: quantity × unit price × (1 − discount) over billable lines (not Cancelled, not Returned) whose factors are all present.
+	measure Revenue =
+			// Line Revenue is materialized in M on billable, complete lines only, so the measure is a plain sum
+			SUM ( fact_sales[Line Revenue] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 03 - KPIs
+		lineageTag: 45391d33-6263-4e06-be0b-bba77c8541ae
+
+	/// Cost of the lines that carry revenue: quantity × the product's unit cost.
+	measure Cost =
+			// Line Cost is filled only where Line Revenue is, so Margin compares like with like
+			SUM ( fact_sales[Line Cost] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 03 - KPIs
+		lineageTag: 7e436d79-2249-4ab3-837c-6f8e9dfda447
+
+	/// Margin = Revenue − Cost.
+	measure Margin =
+			// Gross margin on the lines that carry revenue
+			[Revenue] - [Cost]
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 03 - KPIs
+		lineageTag: e9e62f37-291e-4cc7-a0d9-75b9ce6a17c5
+
+	/// Margin % = Margin ÷ Revenue.
+	measure 'Margin %' =
+			// Share of revenue left after cost
+			DIVIDE ( [Margin], [Revenue] )
+		formatString: 0.0%
+		displayFolder: 03 - KPIs
+		lineageTag: 77278aa4-fd2e-4df0-a4f4-30094b6134fa
+
+	/// Number of orders with at least one revenue line. Orders that were cancelled, returned, or whose every billable line lost a factor to the scrub do not count.
+	measure Orders =
+			// An order counts when one of its lines carries revenue, so AOV divides revenue by the orders that produced it
+			CALCULATE (
+				DISTINCTCOUNT ( fact_sales[Order ID] ),
+				NOT ISBLANK ( fact_sales[Line Revenue] )
+			)
+		formatString: #,0
+		displayFolder: 03 - KPIs
+		lineageTag: 7df0c478-7b93-44a0-a83e-17eee2d3a393
+
+	/// Average order value = Revenue ÷ Orders.
+	measure AOV =
+			// Revenue per order that produced revenue
+			DIVIDE ( [Revenue], [Orders] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 03 - KPIs
+		lineageTag: d8f83a2b-3960-44a8-b87c-d96decbbfa14
+
+	/// Revenue for the same period one year earlier, on order date. Blank when the date filter spans more than one calendar year.
+	measure 'Revenue PY' =
+			// Shifts the dim_date filter back one year, only inside one calendar year: a multi-year span would shift onto a prior span the data only partly covers
+			VAR _singleYear = HASONEVALUE ( dim_date[Year] )
+			RETURN
+				IF ( _singleYear, CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( dim_date[Date] ) ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 02 - Period
+		lineageTag: 67a5d5f3-a907-4d55-879b-7d8bbc1f01c4
+
+	/// Revenue YoY % = (Revenue − Revenue PY) ÷ Revenue PY. Blank when either year has no revenue.
+	measure 'Revenue YoY %' =
+			// Growth against the same period last year, only inside one calendar year: a multi-year span would compare against a prior span the data only partly covers
+			VAR _singleYear = HASONEVALUE ( dim_date[Year] )
+			VAR _current = [Revenue]
+			VAR _priorYear = [Revenue PY]
+			RETURN
+				IF (
+					_singleYear && NOT ISBLANK ( _current ) && NOT ISBLANK ( _priorYear ),
+					DIVIDE ( _current - _priorYear, _priorYear )
+				)
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 02 - Period
+		lineageTag: 416dfe59-b048-4419-9d32-e4d10fa5e9ed
+
+	/// Monthly revenue target per category. Blank when the date filter is not whole months, or when a product, customer or sales-line attribute is filtered: targets exist only per month and category.
+	measure Target =
+			// Targets are set per month and category, so any finer slice would show a wrong number
+			VAR _daysInContext = COUNTROWS ( dim_date )
+			VAR _daysInWholeMonths =
+				CALCULATE ( COUNTROWS ( dim_date ), ALL ( dim_date ), VALUES ( dim_date[Month Start] ) )
+			VAR _wholeMonths = _daysInContext = _daysInWholeMonths
+			VAR _finerThanCategory =
+				ISFILTERED ( dim_product ) || ISFILTERED ( dim_customer ) || ISFILTERED ( fact_sales )
+			RETURN
+				IF ( _wholeMonths && NOT _finerThanCategory, SUM ( fact_targets[Revenue Target] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 07 - Targets
+		lineageTag: b20ce99c-dec6-4c95-bdf7-73dd241a6334
+
+	/// Target Variance = Revenue − Target. Positive beats the target. Blank where Target is blank.
+	measure 'Target Variance' =
+			// Inherits Target's grain guard: no target, no variance
+			VAR _target = [Target]
+			RETURN
+				IF ( NOT ISBLANK ( _target ), [Revenue] - _target )
+		formatString: +\$#,0;-\$#,0;\$0
+		displayFolder: 07 - Targets
+		lineageTag: b3a25cee-1a17-4842-80c9-0c82002fe3bf
+
+	/// Target Variance % = Target Variance ÷ Target.
+	measure 'Target Variance %' =
+			// Variance as a share of the target; Target is read once, so its grain guard runs once per cell
+			VAR _target = [Target]
+			RETURN
+				IF ( NOT ISBLANK ( _target ), DIVIDE ( [Revenue] - _target, _target ) )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 - Targets
+		lineageTag: a261fbc7-8430-4dec-abc1-a7ee258baefa
+
+	/// Every order line whatever its status, so a status breakdown can show Cancelled and Returned, which Orders leaves out.
+	measure 'Order Lines' =
+			// Plain row count: no revenue condition
+			COUNTROWS ( fact_sales )
+		formatString: #,0
+		displayFolder: 08 - Report Visuals
+		lineageTag: 0ad8bcee-32eb-47c1-8705-850305ebb2db
+
+	/// Earliest order date in context. The Gantt chart's start date.
+	measure 'First Order Date' =
+			// Lines of one order share a date; MIN also holds across several orders
+			MIN ( fact_sales[Order Date] )
+		formatString: yyyy-mm-dd
+		displayFolder: 08 - Report Visuals
+		lineageTag: 874081cc-af97-4297-9714-68e5c689657a
+
+	/// Latest ship date in context, or the order date when nothing shipped yet. The Gantt chart's end date.
+	measure 'Last Ship Date' =
+			// Falls back so an unshipped order still draws a bar instead of dropping out
+			COALESCE ( MAX ( fact_sales[Ship Date] ), [First Order Date] )
+		formatString: yyyy-mm-dd
+		displayFolder: 08 - Report Visuals
+		lineageTag: ea4dd0fb-d63f-47f8-b27b-80ff72d24572
+
+	/// Share of order lines already delivered. The Gantt chart's progress.
+	measure 'Delivered %' =
+			// Status is canonical after staging, so a plain comparison is safe
+			DIVIDE ( CALCULATE ( COUNTROWS ( fact_sales ), fact_sales[Status] = "Delivered" ), COUNTROWS ( fact_sales ) )
+		formatString: 0%
+		displayFolder: 08 - Report Visuals
+		lineageTag: c41d4696-a962-40a5-9ec7-2d95990e575d
+
+	/// Quillmere's invented logo as an SVG data URL, so the image visual needs no file in the report.
+	measure 'Brand Mark' = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='16' fill='#1F2A3C'/><text x='60' y='84' font-family='Segoe UI' font-size='72' font-weight='700' text-anchor='middle' fill='#FFFFFF'>Q</text></svg>"
+		displayFolder: 08 - Report Visuals
+		lineageTag: 5db623b1-5d9f-4487-ba3c-aa3a926c74a8
+		dataCategory: ImageUrl
+
+	/// Placeholder so the table can exist. Hidden: _Measures holds measures only.
+	column Placeholder
+		dataType: string
+		isHidden
+		lineageTag: bcd7358c-5752-4718-a3e8-5de522300601
+		summarizeBy: none
+		sourceColumn: Placeholder
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = m
+		mode: import
+		queryGroup: Model
+		source =
+				let
+					// Empty one-column table: the measures need a home, not data
+					Source = #table(type table [Placeholder = text], {})
+				in
+					Source
+
+	annotation PBI_ResultType = Table
+

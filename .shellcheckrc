@@ -1,0 +1,2 @@
+# Resolves "# shellcheck source=" directives against the folder of the script that holds them.
+source-path=SCRIPTDIR

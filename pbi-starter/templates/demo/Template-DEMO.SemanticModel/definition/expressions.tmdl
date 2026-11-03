@@ -1,0 +1,330 @@
+/// Absolute path to demo\data in your clone: Power Query refuses relative paths. Defaults to the clone path the README suggests. The report opens with its saved data whatever this holds; only a refresh reads it.
+expression DataFolder = "C:\src\pbi-pack\demo\data\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8f040717-f7d2-49ba-8abb-fd30e5e67d76
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+
+/// Shared CSV reader. Every query reads its file through here, so the folder, encoding and header handling live in one place.
+expression _Source =
+		// Reads one CSV from DataFolder: UTF-8, comma-delimited, headers promoted and trimmed, cell errors shielded to null
+		(FileName as text) as table =>
+		let
+			// Accept DataFolder with or without a trailing backslash
+			Folder = if Text.EndsWith(DataFolder, "\") then DataFolder else DataFolder & "\",
+			// Guard: a clone outside the default path has to say which setting to change
+			Bytes = try Binary.Buffer(File.Contents(Folder & FileName)) otherwise error Error.Record("DataFolder", "Cannot read " & Folder & FileName & ". Set the DataFolder parameter to the absolute path of demo\data in your clone (Transform data > Edit parameters)."),
+			// Parse the file as UTF-8 (code page 65001) CSV with standard quoting
+			Raw = Csv.Document(Bytes, [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+			// The first row holds the column names
+			Promoted = Table.PromoteHeaders(Raw, [PromoteAllScalars = true]),
+			// Trim column names so every later step binds by name, never by position
+			TrimmedNames = Table.TransformColumnNames(Promoted, Text.Trim),
+			// Shield: any cell error becomes null before a later step reads it
+			Shielded = Table.ReplaceErrorValues(TrimmedNames, List.Transform(Table.ColumnNames(TrimmedNames), each {_, null}))
+		in
+			Shielded
+	lineageTag: 2a22d4c4-0ead-49b8-aaf0-1eb97e623670
+	queryGroup: Functions
+
+	annotation PBI_ResultType = Function
+
+/// True when a raw cell holds a junk token (blank, "-", "n/a", spreadsheet error text). Applied to date and number columns only.
+expression _IsJunk =
+		// Junk-token allowlist, compared case- and space-insensitively
+		(Value as any) as logical =>
+		let
+			// Tokens that carry no value in a date or number column
+			JunkTokens = {"-", "n/a", "na", "#value!", "#ref!", "#n/a", "#name?", "#div/0!", "#num!", "#null!", ",", ";", ""},
+			// Lower-case and trim the cell so "N/A " and "n/a" match the same token
+			Normalized = if Value = null then null else Text.Lower(Text.Trim(Text.From(Value)))
+		in
+			Normalized = null or List.Contains(JunkTokens, Normalized)
+	lineageTag: 48a7bd02-3a34-4254-9869-511998f37d34
+	queryGroup: Functions
+
+	annotation PBI_ResultType = Function
+
+/// Replaces junk tokens with null in the named columns, leaving every other column untouched.
+expression _ScrubJunk =
+		// Scrub runs before the type cast, so "n/a" never reaches a number or date conversion
+		(Data as table, Columns as list) as table =>
+			Table.TransformColumns(Data, List.Transform(Columns, (ColumnName) => {ColumnName, (Value) => if _IsJunk(Value) then null else Value}))
+	lineageTag: df1722e0-914a-4eb4-8d05-f08370a7e758
+	queryGroup: Functions
+
+	annotation PBI_ResultType = Function
+
+/// Returns the table unchanged when the key columns are unique; otherwise stops the refresh and names up to five duplicate keys.
+expression _AssertUniqueKey =
+		// Structural guard: a broken grain must fail the refresh loudly, not double-count silently
+		(Data as table, KeyColumns as list, Label as text) as table =>
+		let
+			// Count rows per key value
+			KeyCounts = Table.Group(Data, KeyColumns, {{"RowsPerKey", Table.RowCount, Int64.Type}}),
+			// Keep the keys that occur more than once
+			Duplicates = Table.SelectRows(KeyCounts, each [RowsPerKey] > 1),
+			// Spell out the first offenders so the fix starts from the error message
+			Offenders = List.Transform(List.FirstN(Table.ToRecords(Duplicates), 5), (Row) => Text.Combine(List.Transform(KeyColumns, (KeyColumn) => Text.From(Record.Field(Row, KeyColumn))), "/")),
+			Result =
+				if Table.IsEmpty(Duplicates) then Data
+				else error Error.Record("Duplicate key", Label & " has " & Text.From(Table.RowCount(Duplicates)) & " duplicate key value(s) on " & Text.Combine(KeyColumns, ", ") & ", e.g. " & Text.Combine(Offenders, "; "))
+		in
+			Result
+	lineageTag: d544ec05-6b53-4927-96cd-84e46c3a7644
+	queryGroup: Functions
+
+	annotation PBI_ResultType = Function
+
+/// orders.csv as delivered, with cell errors shielded and nothing else changed. _DataQualityIssues reads original values from here.
+expression raw_orders =
+		let
+			// Read orders.csv through the shared CSV reader
+			Source = _Source("orders.csv")
+		in
+			Source
+	lineageTag: 14edc885-abd7-449c-975a-e419acf7bcb1
+	queryGroup: Staging
+
+	annotation PBI_ResultType = Table
+
+/// Order lines scrubbed, normalized, typed and guarded. Feeds fact_sales and dim_date.
+expression stg_orders =
+		let
+			// Start from the raw file
+			Source = raw_orders,
+			// Keep the columns the model uses, bound by name
+			SelectedColumns = Table.SelectColumns(Source, {"order_id", "line_no", "order_date", "ship_date", "customer_id", "product_id", "quantity", "unit_price", "discount", "status"}),
+			// Scrub junk tokens to null on date and number columns only; key and text columns stay as delivered
+			Scrubbed = _ScrubJunk(SelectedColumns, {"line_no", "order_date", "ship_date", "quantity", "unit_price", "discount"}),
+			// Normalize status spelling: trim spaces, then proper case ("delivered  " becomes "Delivered")
+			NormalizedStatus = Table.TransformColumns(Scrubbed, {{"status", each Text.Proper(Text.Trim(_)), type text}}),
+			// Guard: after normalization only the five canonical statuses may remain; a blank status is unexpected too, since billability depends on it
+			UnexpectedStatuses = List.Transform(List.Difference(List.Distinct(NormalizedStatus[status]), {"Delivered", "Shipped", "Processing", "Cancelled", "Returned"}), each if _ = null or _ = "" then "(blank)" else _),
+			GuardedStatus =
+				if List.IsEmpty(UnexpectedStatuses) then NormalizedStatus
+				else error Error.Record("Unexpected order status", "orders.csv has status values outside the five canonical ones: " & Text.Combine(UnexpectedStatuses, ", ")),
+			// Cast last, in the en-US culture the file is written in (decimal point, ISO dates), whatever the machine locale
+			Typed = Table.TransformColumnTypes(GuardedStatus, {
+				{"order_id", Int64.Type},
+				{"line_no", Int64.Type},
+				{"order_date", type date},
+				{"ship_date", type date},
+				{"customer_id", type text},
+				{"product_id", type text},
+				{"quantity", Int64.Type},
+				{"unit_price", Currency.Type},
+				{"discount", type number},
+				{"status", type text}
+			}, "en-US"),
+			// Guard: every value that survived the scrub converted to its type
+			GuardedTypes = _AssertTyped(Typed, {"order_id", "line_no"}, "orders.csv"),
+			// Guard: the line's key, its order date and its dimension keys are never blank
+			GuardedRequired = _AssertRequired(GuardedTypes, {"order_id", "line_no", "order_date", "customer_id", "product_id"}, {"order_id", "line_no"}, "orders.csv"),
+			// Guard: an order line is identified by (order_id, line_no)
+			GuardedGrain = _AssertUniqueKey(GuardedRequired, {"order_id", "line_no"}, "orders.csv")
+		in
+			GuardedGrain
+	lineageTag: a527265c-d5cd-4276-bfc2-f5c2929c9505
+	queryGroup: Staging
+
+	annotation PBI_ResultType = Table
+
+/// Customers typed and guarded. Feeds dim_customer and the orphan check in fact_sales.
+expression stg_customers =
+		let
+			// Read customers.csv through the shared CSV reader
+			Source = _Source("customers.csv"),
+			// Keep the columns the model uses, bound by name
+			SelectedColumns = Table.SelectColumns(Source, {"customer_id", "customer_name", "city", "region", "segment", "signup_date"}),
+			// Scrub junk tokens on the only date column
+			Scrubbed = _ScrubJunk(SelectedColumns, {"signup_date"}),
+			// Cast last, in the file's en-US culture
+			Typed = Table.TransformColumnTypes(Scrubbed, {
+				{"customer_id", type text},
+				{"customer_name", type text},
+				{"city", type text},
+				{"region", type text},
+				{"segment", type text},
+				{"signup_date", type date}
+			}, "en-US"),
+			// Guard: every value that survived the scrub converted to its type
+			GuardedTypes = _AssertTyped(Typed, {"customer_id"}, "customers.csv"),
+			// Guard: the customer key is never blank
+			GuardedRequired = _AssertRequired(GuardedTypes, {"customer_id"}, {"customer_id"}, "customers.csv"),
+			// Guard: one row per customer
+			GuardedKey = _AssertUniqueKey(GuardedRequired, {"customer_id"}, "customers.csv")
+		in
+			GuardedKey
+	lineageTag: 22b2fd40-d9a5-48b2-85bc-255cabca3f0d
+	queryGroup: Staging
+
+	annotation PBI_ResultType = Table
+
+/// Products typed and guarded. Feeds dim_product, dim_category and the category and unit cost lookups in fact_sales.
+expression stg_products =
+		let
+			// Read products.csv through the shared CSV reader
+			Source = _Source("products.csv"),
+			// Keep the columns the model uses, bound by name
+			SelectedColumns = Table.SelectColumns(Source, {"product_id", "product_name", "category", "subcategory", "list_price", "unit_cost"}),
+			// Scrub junk tokens on the number columns
+			Scrubbed = _ScrubJunk(SelectedColumns, {"list_price", "unit_cost"}),
+			// Cast last, in the file's en-US culture
+			Typed = Table.TransformColumnTypes(Scrubbed, {
+				{"product_id", type text},
+				{"product_name", type text},
+				{"category", type text},
+				{"subcategory", type text},
+				{"list_price", Currency.Type},
+				{"unit_cost", Currency.Type}
+			}, "en-US"),
+			// Guard: every value that survived the scrub converted to its type
+			GuardedTypes = _AssertTyped(Typed, {"product_id"}, "products.csv"),
+			// Guard: key, category and unit cost are never blank; a product without a unit cost would count its revenue as margin
+			GuardedRequired = _AssertRequired(GuardedTypes, {"product_id", "category", "unit_cost"}, {"product_id"}, "products.csv"),
+			// Guard: one row per product
+			GuardedKey = _AssertUniqueKey(GuardedRequired, {"product_id"}, "products.csv")
+		in
+			GuardedKey
+	lineageTag: 8b2ea6e7-efc7-449b-9ea7-61ba2d0081ca
+	queryGroup: Staging
+
+	annotation PBI_ResultType = Table
+
+/// Monthly revenue targets per category, typed and guarded. Feeds fact_targets and dim_date.
+expression stg_targets =
+		let
+			// Read targets.csv through the shared CSV reader
+			Source = _Source("targets.csv"),
+			// Keep the columns the model uses, bound by name
+			SelectedColumns = Table.SelectColumns(Source, {"month", "category", "revenue_target"}),
+			// Scrub junk tokens on the date and number columns
+			Scrubbed = _ScrubJunk(SelectedColumns, {"month", "revenue_target"}),
+			// Cast last, in the file's en-US culture
+			Typed = Table.TransformColumnTypes(Scrubbed, {
+				{"month", type date},
+				{"category", type text},
+				{"revenue_target", Currency.Type}
+			}, "en-US"),
+			// Guard: every value that survived the scrub converted to its type
+			GuardedTypes = _AssertTyped(Typed, {"month", "category"}, "targets.csv"),
+			// Guard: a target month is stored as its first day, which is where it joins dim_date
+			OffDayMonths = List.Select(List.Distinct(GuardedTypes[month]), each _ = null or Date.Day(_) <> 1),
+			GuardedMonth =
+				if List.IsEmpty(OffDayMonths) then GuardedTypes
+				else error Error.Record("Target month not on day 1", "targets.csv has " & Text.From(List.Count(OffDayMonths)) & " month value(s) that are blank or not the first day of a month"),
+			// Guard: category and target are never blank; a blank target would leave its month and category without a variance
+			GuardedRequired = _AssertRequired(GuardedMonth, {"category", "revenue_target"}, {"month", "category"}, "targets.csv"),
+			// Guard: one target per month and category
+			GuardedKey = _AssertUniqueKey(GuardedRequired, {"month", "category"}, "targets.csv")
+		in
+			GuardedKey
+	lineageTag: 3a70a69b-ad02-4307-9354-38b2299f8c1d
+	queryGroup: Staging
+
+	annotation PBI_ResultType = Table
+
+/// Not loaded. One row per source defect the ETL scrubbed, mapped or flagged, so nothing is nulled silently. Open it in Power Query to review.
+expression _DataQualityIssues =
+		let
+			// Shape of every issue row
+			IssueType = type table [Table = text, #"Row Key" = text, Column = text, Value = nullable text, Issue = text],
+			// Turns rows into issue rows: the source table, the row key, the column at fault and its value as delivered or as loaded
+			ToIssues = (TableName as text, Rows as table, KeyColumns as list, ColumnName as text, Issue as text) as table =>
+				#table(IssueType, List.Transform(Table.ToRecords(Rows), (Row) =>
+					{
+						TableName,
+						Text.Combine(List.Transform(KeyColumns, (KeyColumn) => Text.From(Record.Field(Row, KeyColumn))), "/"),
+						ColumnName,
+						let CellValue = Record.Field(Row, ColumnName) in
+							if CellValue is date then Date.ToText(CellValue, [Format = "yyyy-MM-dd", Culture = "en-US"]) else Text.From(CellValue),
+						Issue
+					})),
+			// An order line is identified by order_id/line_no
+			OrderKey = {"order_id", "line_no"},
+			// Raw lines with status normalized, to tell lines that should have shipped from those that never do
+			RawWithStatus = Table.AddColumn(raw_orders, "canonical_status", each Text.Proper(Text.Trim([status])), type text),
+			// Junk tokens in quantity, unit_price and discount were scrubbed to null, so the line carries no revenue or cost
+			NumberJunk = List.Transform({"quantity", "unit_price", "discount"}, (ColumnName) =>
+				ToIssues("orders", Table.SelectRows(RawWithStatus, each _IsJunk(Record.Field(_, ColumnName))), OrderKey, ColumnName, "Junk token scrubbed to null; line has no revenue or cost")),
+			// A blank ship_date is expected on Processing and Cancelled lines; on any other status it is a defect
+			MissingShipDate = ToIssues("orders",
+				Table.SelectRows(RawWithStatus, each _IsJunk([ship_date]) and not List.Contains({"Processing", "Cancelled"}, [canonical_status])),
+				OrderKey, "ship_date", "Missing ship date on a shipped line; scrubbed to null"),
+			// Ship date earlier than the order date: kept as delivered and flagged in fact_sales[Shipped Before Order]
+			ShippedBeforeOrder = ToIssues("orders",
+				Table.SelectRows(stg_orders, each [ship_date] <> null and [ship_date] < [order_date]),
+				OrderKey, "ship_date", "Ship date before order date; flagged in fact_sales"),
+			// Customer ids missing from customers.csv were mapped to the UNKNOWN member of dim_customer
+			OrphanCustomers = ToIssues("orders",
+				Table.NestedJoin(stg_orders, {"customer_id"}, stg_customers, {"customer_id"}, "Customer", JoinKind.LeftAnti),
+				OrderKey, "customer_id", "Customer ID not in customers.csv; mapped to UNKNOWN"),
+			// Junk in a product's list price was scrubbed to null; dim_product shows it blank
+			ListPriceJunk = ToIssues("products",
+				Table.SelectRows(_Source("products.csv"), each _IsJunk([list_price])),
+				{"product_id"}, "list_price", "Junk token scrubbed to null; list price blank in dim_product"),
+			// Junk in a customer's signup date was scrubbed to null; dim_customer shows it blank
+			SignupDateJunk = ToIssues("customers",
+				Table.SelectRows(_Source("customers.csv"), each _IsJunk([signup_date])),
+				{"customer_id"}, "signup_date", "Junk token scrubbed to null; signup date blank in dim_customer"),
+			// Every issue in one table
+			AllIssues = Table.Combine(NumberJunk & {MissingShipDate, ShippedBeforeOrder, OrphanCustomers, ListPriceJunk, SignupDateJunk})
+		in
+			AllIssues
+	lineageTag: 0942c689-1675-417f-ba33-c12d04b1e7eb
+	queryGroup: 'Data Quality'
+
+	annotation PBI_ResultType = Table
+
+/// Returns the table unchanged when every cell converted to its column type; otherwise stops the refresh and names up to five offending rows.
+expression _AssertTyped =
+		// Structural guard: a value that is neither a junk token nor valid for its type means the source format changed, so the refresh fails instead of loading blanks
+		(Data as table, KeyColumns as list, Label as text) as table =>
+		let
+			// Rows where at least one cell failed its type conversion
+			ErrorRows = Table.SelectRowsWithErrors(Data),
+			// Reads a cell as text without raising: the value as delivered for a failed conversion, "(blank)" for null
+			CellText = (Row as record, ColumnName as text) as text =>
+				let
+					Attempt = try Record.Field(Row, ColumnName),
+					Delivered = if Attempt[HasError] then (try Text.From(Attempt[Error][Detail]) otherwise null) else Attempt[Value]
+				in
+					if Delivered = null then "(blank)" else Text.From(Delivered),
+			// The columns of one row whose conversion failed, with the value as delivered
+			FailedCells = (Row as record) as list =>
+				List.Transform(
+					List.Select(Record.FieldNames(Row), (ColumnName) => (try Record.Field(Row, ColumnName))[HasError]),
+					(ColumnName) => ColumnName & " = """ & CellText(Row, ColumnName) & """"),
+			// Spell out the first offenders so the fix starts from the error message
+			Offenders = List.Transform(Table.ToRecords(Table.FirstN(ErrorRows, 5)), (Row) =>
+				Text.Combine(List.Transform(KeyColumns, (KeyColumn) => CellText(Row, KeyColumn)), "/") & " (" & Text.Combine(FailedCells(Row), ", ") & ")"),
+			Result =
+				if Table.IsEmpty(ErrorRows) then Data
+				else error Error.Record("Unconvertible value", Label & " has " & Text.From(Table.RowCount(ErrorRows)) & " row(s) with a value that is neither a junk token nor valid for its column type, e.g. " & Text.Combine(Offenders, "; "))
+		in
+			Result
+	lineageTag: 1ef8e986-3dc2-4f0d-93c4-b3465cf6740b
+	queryGroup: Functions
+
+/// Returns the table unchanged when the required columns hold a value on every row; otherwise stops the refresh and names up to five offending rows.
+expression _AssertRequired =
+		// Structural guard: a blank key, a blank date a row hangs on, or a blank factor a measure needs would drop that row's numbers silently
+		(Data as table, Columns as list, KeyColumns as list, Label as text) as table =>
+		let
+			// Blank means null (including values scrubbed from junk tokens) or, in a text column, empty after trimming
+			IsBlank = (Value as any) as logical => Value = null or (Value is text and Text.Trim(Value) = ""),
+			// Rows where any required column is blank
+			MissingRows = Table.SelectRows(Data, (Row) => List.AnyTrue(List.Transform(Columns, (ColumnName) => IsBlank(Record.Field(Row, ColumnName))))),
+			// Spell out the first offenders: the row key, then the required columns left blank
+			Offenders = List.Transform(Table.ToRecords(Table.FirstN(MissingRows, 5)), (Row) =>
+				Text.Combine(List.Transform(KeyColumns, (KeyColumn) => let KeyValue = Record.Field(Row, KeyColumn) in if IsBlank(KeyValue) then "(blank)" else Text.From(KeyValue)), "/")
+				& " (" & Text.Combine(List.Select(Columns, (ColumnName) => IsBlank(Record.Field(Row, ColumnName))), ", ") & ")"),
+			Result =
+				if Table.IsEmpty(MissingRows) then Data
+				else error Error.Record("Missing required value", Label & " has " & Text.From(Table.RowCount(MissingRows)) & " row(s) with a blank or junk value in a required column (" & Text.Combine(Columns, ", ") & "), e.g. " & Text.Combine(Offenders, "; "))
+		in
+			Result
+	lineageTag: 62423fe5-f202-4625-9e33-bbde113fe11a
+	queryGroup: Functions
+

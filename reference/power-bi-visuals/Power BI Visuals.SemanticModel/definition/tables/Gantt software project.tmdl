@@ -1,0 +1,132 @@
+/// Sample data of software-project tasks (start, end, progress, dependencies) for Gantt visual demos.
+table 'Gantt software project'
+	lineageTag: c287e114-ab1e-4921-b12a-cb5fedf6c255
+
+	/// Marker measure used for the Gantt chart demo.
+	measure FabCon = DATE(2025, 3, 15)
+		formatString: General Date
+		lineageTag: c3714bb6-261e-4871-bb26-df90f39f2dee
+
+	/// The start date of the task, rolling up to start date of category or entire project.
+	measure 'Start date' = MIN('Gantt software project'[Start])
+		formatString: dd mmm yyyy
+		lineageTag: 9049d0c7-57e2-489b-82b0-6d4097c340f5
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// For the task to show as a milestone, the end date should return blank.
+	measure 'End date' =
+			IF(
+						[Start date] == MAX('Gantt software project'[End]),
+						BLANK(),
+						MAX('Gantt software project'[End])
+					)
+		formatString: dd mmm yyyy
+		lineageTag: b6fe4680-ff36-4f67-8a66-7d10c48432c2
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// The percentage of the task that is completed.
+	measure 'Progress %' =
+			DIVIDE(
+						AVERAGE('Gantt software project'[Progress]),
+						100
+					)
+		formatString: #,0%;-#,0%;#,0%
+		lineageTag: ddc65479-a2ba-47ee-bf48-744398369df5
+
+	column 'Task ID'
+		formatString: 0
+		lineageTag: de46559a-543f-4cb5-8478-d6f5edbca744
+		summarizeBy: count
+		isNameInferred
+		sourceColumn: [Task ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Task
+		lineageTag: cdefbf4e-967f-4a24-9a47-dddba451c962
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Task]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		lineageTag: 0a327e2f-ec45-4abd-9211-ad0cdafa3fbb
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Category]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Start
+		formatString: General Date
+		lineageTag: 0f9922c8-7ae2-464a-bae7-094dde57b801
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Start]
+
+		annotation SummarizationSetBy = Automatic
+
+	column End
+		formatString: General Date
+		lineageTag: 5394da9c-8394-458b-9fe9-ad395c00148d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [End]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Progress
+		formatString: 0
+		lineageTag: f23fe5aa-7697-467d-82ce-9556cf7f8f0f
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Progress]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dependencies
+		lineageTag: 6f958707-cae2-4ed3-ab95-3761153ec42b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Dependencies]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Gantt software project' = calculated
+		mode: import
+		source = ```
+				
+				VAR TaskTable = 
+					{
+						( 1, "Project Kickoff", "Planning", DATE(2025,1,6), DATE(2025,1,6), 100, "" ),
+						( 2, "Requirements Gathering", "Planning", DATE(2025,1,7), DATE(2025,1,17), 100, "1" ),
+						( 3, "Technical Specification", "Planning", DATE(2025,1,13), DATE(2025,1,24), 75, "2" ),
+						( 4, "Architecture Review", "Planning", DATE(2025,1,27), DATE(2025,1,27), 0, "3" ),
+						( 5, "Database Design", "Development", DATE(2025,1,28), DATE(2025,2,7), 50, "4" ),
+						( 6, "API Development", "Development", DATE(2025,2,3), DATE(2025,2,21), 25, "5" ),
+						( 7, "Frontend Development", "Development", DATE(2025,2,10), DATE(2025,2,28), 10, "5" ),
+						( 8, "Integration", "Development", DATE(2025,2,24), DATE(2025,3,7), 0, "6,7" ),
+						( 9, "Unit Testing", "Testing", DATE(2025,2,17), DATE(2025,3,7), 0, "6" ),
+						( 10, "Integration Testing", "Testing", DATE(2025,3,10), DATE(2025,3,21), 0, "8,9" ),
+						( 11, "User Acceptance Testing", "Testing", DATE(2025,3,24), DATE(2025,4,4), 0, "10" ),
+						( 12, "Production Deployment", "Deployment", DATE(2025,4,7), DATE(2025,4,11), 0, "11" ),
+						( 13, "Go Live", "Deployment", DATE(2025,4,14), DATE(2025,4,14), 0, "12" )
+					}
+				RETURN
+					SELECTCOLUMNS(
+						TaskTable,
+						"Task ID", [Value1],
+						"Task", [Value2],
+						"Category", [Value3],
+						"Start", [Value4],
+						"End", [Value5],
+						"Progress", [Value6],
+						"Dependencies", [Value7]
+					)
+				```
+
+	annotation PBI_Id = 657a62e9dd4d4163b3e3542df33e4502
+

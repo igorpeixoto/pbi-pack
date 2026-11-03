@@ -1,0 +1,42 @@
+# OS & System Junk
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+
+# Backups folder
+backups/
+
+# Power BI Desktop local/session files (machine-specific, not shared project state)
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+*.pbi.json
+
+# Claude Code personal overrides
+.claude/settings.local.json
+
+# OneDrive sync conflict copies
+# OneDrive appends the syncing machine's name before the extension (e.g. model-<machine>.tmdl,
+# -<machine>.platform, .pbi/cache-<machine>.abf). They are stale duplicates of files already
+# tracked here and must never be committed — 111 of them once accumulated and masked 62 dead
+# visual.json folders in a report template that no one could see in the git status noise.
+# Uncomment and fill in your machine's suffix the first time one shows up in `git status`
+# (add one pair per machine that syncs this folder):
+# *-<machine>.*
+# *-<machine>
+*conflicted copy*
+
+# Python bytecode (skills/*/scripts)
+__pycache__/
+*.pyc
+
+# Brand preview (apply_brand.py --preview / preview_brand.py) - regenerated, never shared
+**/assets/preview.html
+
+# Forbidden-term list for scripts/check-denylist.sh - names what it guards, so never tracked
+.denylist
+# Public-release run prompts - they name the material being removed
+docs/public-release/
+
+# Local Python virtual environment (demo/requirements.txt)
+.venv/

@@ -1,0 +1,13 @@
+# PBIP/TMDL/PBIR content is diffed and reviewed as text; Power BI Desktop
+# resaves these with CRLF on Windows, which turns every touched file into a
+# full-file diff with no real content change. Force LF in the repo regardless
+# of the client's core.autocrlf so diffs stay meaningful on any OS.
+*.pbip text eol=lf
+*.pbir text eol=lf
+*.pbism text eol=lf
+*.platform text eol=lf
+*.tmdl text eol=lf
+*.json text eol=lf
+*.pq text eol=lf
+*.dax text eol=lf
+*.m text eol=lf

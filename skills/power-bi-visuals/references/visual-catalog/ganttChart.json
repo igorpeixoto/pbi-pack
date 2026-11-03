@@ -1,0 +1,251 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "9f8820b2e05557812078",
+  "position": {
+    "x": 306.73175904040289,
+    "y": 146.57977865647572,
+    "z": 2000,
+    "height": 841.47650710199036,
+    "width": 1514.6577127835826,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "ganttChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Gantt software project"
+                    }
+                  },
+                  "Property": "Category"
+                }
+              },
+              "queryRef": "Gantt software project.Category",
+              "nativeQueryRef": "Category"
+            }
+          ]
+        },
+        "EndDate": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Gantt software project"
+                    }
+                  },
+                  "Property": "End date"
+                }
+              },
+              "queryRef": "Gantt software project.End date",
+              "nativeQueryRef": "End date"
+            }
+          ]
+        },
+        "Progress": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Gantt software project"
+                    }
+                  },
+                  "Property": "Progress %"
+                }
+              },
+              "queryRef": "Gantt software project.Progress %",
+              "nativeQueryRef": "Progress %"
+            }
+          ]
+        },
+        "StartDate": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Gantt software project"
+                    }
+                  },
+                  "Property": "Start date"
+                }
+              },
+              "queryRef": "Gantt software project.Start date",
+              "nativeQueryRef": "Start date"
+            }
+          ]
+        },
+        "Task": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Gantt software project"
+                    }
+                  },
+                  "Property": "Task"
+                }
+              },
+              "queryRef": "Gantt software project.Task",
+              "nativeQueryRef": "Task"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Gantt software project"
+                  }
+                },
+                "Property": "Start date"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "columnHeaders": [
+        {
+          "properties": {
+            "defaultColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "225D"
+                }
+              }
+            },
+            "customColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "90D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Gantt software project.Progress %"
+          }
+        }
+      ],
+      "row": [
+        {
+          "properties": {
+            "colorByCategory": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          },
+          "selector": {
+            "id": "level:level1"
+          }
+        }
+      ],
+      "axis": [
+        {
+          "properties": {
+            "zoomShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "position": {
+              "expr": {
+                "Literal": {
+                  "Value": "'top'"
+                }
+              }
+            },
+            "gridlineShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "shadingShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "shadingTransparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "90D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Gantt chart to show your project schedule'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'with progress and extra columns'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

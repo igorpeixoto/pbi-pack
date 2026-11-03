@@ -1,0 +1,5 @@
+# An explicit rule set, so the result doesn't change when a ruff release changes its defaults.
+# These rules catch likely bugs. Style rules such as UP031 (the scripts use % formatting
+# throughout) are left out on purpose.
+[lint]
+select = ["E4", "E7", "E9", "F", "B"]

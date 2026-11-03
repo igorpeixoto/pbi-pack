@@ -1,0 +1,301 @@
+product_id,product_name,category,subcategory,list_price,unit_cost
+P0001,Studio Skillet 001,Kitchen,Cookware,124.99,66.24
+P0002,Slate Saucepan 002,Kitchen,Cookware,35.99,21.85
+P0003,Classic Stockpot 003,Kitchen,Cookware,75.99,48.72
+P0004,Heritage Wok 004,Kitchen,Cookware,33.99,23.49
+P0005,Oak Dutch Oven 005,Kitchen,Cookware,54.99,36.29
+P0006,Terra Skillet 006,Kitchen,Cookware,85.99,54.17
+P0007,Pebble Saucepan 007,Kitchen,Cookware,18.99,12.86
+P0008,Heritage Stockpot 008,Kitchen,Cookware,103.99,65.70
+P0009,Oak Wok 009,Kitchen,Cookware,35.99,17.47
+P0010,Nordic Dutch Oven 010,Kitchen,Cookware,47.99,31.50
+P0011,Heritage Skillet 011,Kitchen,Cookware,116.99,71.68
+P0012,Studio Saucepan 012,Kitchen,Cookware,43.99,22.36
+P0013,Compact Stockpot 013,Kitchen,Cookware,50.99,32.67
+P0014,Modern Wok 014,Kitchen,Cookware,29.99,20.60
+P0015,Terra Dutch Oven 015,Kitchen,Cookware,48.99,25.06
+P0016,Classic Dinner Plate Set 016,Kitchen,Tableware,46.99,30.21
+P0017,Everyday Bowl Set 017,Kitchen,Tableware,45.99,29.85
+P0018,Classic Mug 018,Kitchen,Tableware,17.99,12.35
+P0019,Compact Serving Platter 019,Kitchen,Tableware,42.99,23.87
+P0020,Slate Tumbler Set 020,Kitchen,Tableware,27.99,14.98
+P0021,Linen Dinner Plate Set 021,Kitchen,Tableware,6.99,4.82
+P0022,Pebble Bowl Set 022,Kitchen,Tableware,7.99,4.58
+P0023,Modern Mug 023,Kitchen,Tableware,22.99,13.16
+P0024,Nordic Serving Platter 024,Kitchen,Tableware,8.99,4.46
+P0025,Urban Tumbler Set 025,Kitchen,Tableware,53.99,30.09
+P0026,Nordic Dinner Plate Set 026,Kitchen,Tableware,36.99,20.02
+P0027,Studio Bowl Set 027,Kitchen,Tableware,31.99,18.30
+P0028,Pebble Mug 028,Kitchen,Tableware,12.99,6.32
+P0029,Nordic Serving Platter 029,Kitchen,Tableware,42.99,23.94
+P0030,Urban Tumbler Set 030,Kitchen,Tableware,33.99,16.72
+P0031,Urban Kettle 031,Kitchen,Small Appliances,75.99,48.45
+P0032,Modern Blender 032,Kitchen,Small Appliances,26.99,15.77
+P0033,Classic Toaster 033,Kitchen,Small Appliances,195.99,95.46
+P0034,Compact Hand Mixer 034,Kitchen,Small Appliances,37.99,24.68
+P0035,Terra Coffee Grinder 035,Kitchen,Small Appliances,52.99,36.85
+P0036,Heritage Kettle 036,Kitchen,Small Appliances,173.99,93.79
+P0037,Willow Blender 037,Kitchen,Small Appliances,179.99,100.19
+P0038,Oak Toaster 038,Kitchen,Small Appliances,89.99,58.13
+P0039,Studio Hand Mixer 039,Kitchen,Small Appliances,131.99,61.02
+P0040,Urban Coffee Grinder 040,Kitchen,Small Appliances,124.99,74.10
+P0041,Slate Kettle 041,Kitchen,Small Appliances,33.99,23.10
+P0042,Compact Blender 042,Kitchen,Small Appliances,82.99,44.87
+P0043,Heritage Toaster 043,Kitchen,Small Appliances,85.99,52.31
+P0044,Heritage Hand Mixer 044,Kitchen,Small Appliances,50.99,29.50
+P0045,Linen Coffee Grinder 045,Kitchen,Small Appliances,161.99,73.46
+P0046,Compact Canister Set 046,Kitchen,Storage,7.99,3.98
+P0047,Oak Lunch Box 047,Kitchen,Storage,14.99,8.41
+P0048,Oak Spice Rack 048,Kitchen,Storage,11.99,7.43
+P0049,Linen Bread Bin 049,Kitchen,Storage,5.99,4.09
+P0050,Slate Food Container Set 050,Kitchen,Storage,11.99,5.77
+P0051,Oak Canister Set 051,Kitchen,Storage,8.99,4.93
+P0052,Oak Lunch Box 052,Kitchen,Storage,41.99,26.40
+P0053,Linen Spice Rack 053,Kitchen,Storage,38.99,22.67
+P0054,Heritage Bread Bin 054,Kitchen,Storage,5.99,3.02
+P0055,Modern Food Container Set 055,Kitchen,Storage,21.99,12.63
+P0056,Modern Canister Set 056,Kitchen,Storage,14.99,9.36
+P0057,Urban Lunch Box 057,Kitchen,Storage,8.99,5.66
+P0058,Heritage Spice Rack 058,Kitchen,Storage,37.99,22.50
+P0059,Compact Bread Bin 059,Kitchen,Storage,8.99,4.99
+P0060,Willow Food Container Set 060,Kitchen,Storage,8.99,5.75
+P0061,Compact Duvet Cover 061,Home,Bedding,108.99,50.52
+P0062,Modern Pillow Pair 062,Home,Bedding,19.99,10.80
+P0063,Oak Throw Blanket 063,Home,Bedding,129.99,76.71
+P0064,Linen Sheet Set 064,Home,Bedding,102.99,69.46
+P0065,Oak Quilt 065,Home,Bedding,83.99,38.74
+P0066,Everyday Duvet Cover 066,Home,Bedding,45.99,24.80
+P0067,Modern Pillow Pair 067,Home,Bedding,139.99,76.52
+P0068,Nordic Throw Blanket 068,Home,Bedding,122.99,75.89
+P0069,Pebble Sheet Set 069,Home,Bedding,95.99,63.64
+P0070,Compact Quilt 070,Home,Bedding,19.99,10.16
+P0071,Terra Duvet Cover 071,Home,Bedding,143.99,73.11
+P0072,Modern Pillow Pair 072,Home,Bedding,43.99,28.87
+P0073,Pebble Throw Blanket 073,Home,Bedding,106.99,57.56
+P0074,Studio Sheet Set 074,Home,Bedding,21.99,11.84
+P0075,Willow Quilt 075,Home,Bedding,19.99,12.62
+P0076,Nordic Table Lamp 076,Home,Lighting,64.99,34.50
+P0077,Heritage Floor Lamp 077,Home,Lighting,20.99,13.50
+P0078,Linen Pendant Shade 078,Home,Lighting,134.99,80.09
+P0079,Pebble Desk Lamp 079,Home,Lighting,174.99,97.31
+P0080,Urban String Lights 080,Home,Lighting,39.99,25.65
+P0081,Linen Table Lamp 081,Home,Lighting,24.99,16.46
+P0082,Terra Floor Lamp 082,Home,Lighting,20.99,11.98
+P0083,Urban Pendant Shade 083,Home,Lighting,65.99,39.48
+P0084,Compact Desk Lamp 084,Home,Lighting,58.99,34.10
+P0085,Studio String Lights 085,Home,Lighting,18.99,8.58
+P0086,Heritage Table Lamp 086,Home,Lighting,60.99,35.54
+P0087,Heritage Floor Lamp 087,Home,Lighting,134.99,66.38
+P0088,Modern Pendant Shade 088,Home,Lighting,83.99,50.99
+P0089,Modern Desk Lamp 089,Home,Lighting,54.99,38.03
+P0090,Slate String Lights 090,Home,Lighting,76.99,50.44
+P0091,Pebble Vase 091,Home,Decor,18.99,10.02
+P0092,Studio Wall Mirror 092,Home,Decor,56.99,36.28
+P0093,Studio Picture Frame 093,Home,Decor,15.99,9.77
+P0094,Studio Candle Holder 094,Home,Decor,31.99,22.16
+P0095,Pebble Planter 095,Home,Decor,35.99,21.23
+P0096,Pebble Vase 096,Home,Decor,16.99,10.08
+P0097,Nordic Wall Mirror 097,Home,Decor,23.99,11.96
+P0098,Terra Picture Frame 098,Home,Decor,85.99,42.17
+P0099,Everyday Candle Holder 099,Home,Decor,34.99,16.14
+P0100,Pebble Planter 100,Home,Decor,85.99,55.90
+P0101,Willow Vase 101,Home,Decor,17.99,9.71
+P0102,Slate Wall Mirror 102,Home,Decor,33.99,16.66
+P0103,Willow Picture Frame 103,Home,Decor,48.99,33.93
+P0104,Classic Candle Holder 104,Home,Decor,38.99,20.25
+P0105,Nordic Planter 105,Home,Decor,7.99,4.56
+P0106,Slate Towel Set 106,Home,Bath,13.99,9.66
+P0107,Slate Bath Mat 107,Home,Bath,7.99,4.11
+P0108,Modern Soap Dispenser 108,Home,Bath,36.99,23.30
+P0109,Willow Shower Caddy 109,Home,Bath,14.99,8.24
+P0110,Willow Bath Robe 110,Home,Bath,59.99,40.75
+P0111,Urban Towel Set 111,Home,Bath,8.99,4.95
+P0112,Terra Bath Mat 112,Home,Bath,11.99,8.28
+P0113,Modern Soap Dispenser 113,Home,Bath,17.99,12.06
+P0114,Classic Shower Caddy 114,Home,Bath,51.99,28.80
+P0115,Willow Bath Robe 115,Home,Bath,57.99,33.67
+P0116,Classic Towel Set 116,Home,Bath,25.99,16.27
+P0117,Studio Bath Mat 117,Home,Bath,20.99,13.34
+P0118,Willow Soap Dispenser 118,Home,Bath,38.99,24.20
+P0119,Modern Shower Caddy 119,Home,Bath,7.99,5.48
+P0120,Linen Bath Robe 120,Home,Bath,47.99,27.92
+P0121,Slate Pruning Shears 121,Outdoor,Garden,94.99,47.40
+P0122,Pebble Hose Reel 122,Outdoor,Garden,99.99,59.23
+P0123,Studio Watering Can 123,Outdoor,Garden,9.99,6.37
+P0124,Nordic Raised Bed Kit 124,Outdoor,Garden,40.99,22.38
+P0125,Willow Trowel Set 125,Outdoor,Garden,22.99,12.82
+P0126,Modern Pruning Shears 126,Outdoor,Garden,22.99,13.61
+P0127,Heritage Hose Reel 127,Outdoor,Garden,29.99,17.23
+P0128,Slate Watering Can 128,Outdoor,Garden,56.99,30.21
+P0129,Urban Raised Bed Kit 129,Outdoor,Garden,80.99,54.92
+P0130,Everyday Trowel Set 130,Outdoor,Garden,91.99,47.77
+P0131,Slate Pruning Shears 131,Outdoor,Garden,49.99,31.85
+P0132,Everyday Hose Reel 132,Outdoor,Garden,10.99,5.66
+P0133,Modern Watering Can 133,Outdoor,Garden,37.99,26.08
+P0134,Terra Raised Bed Kit 134,Outdoor,Garden,50.99,26.12
+P0135,Classic Trowel Set 135,Outdoor,Garden,82.99,56.69
+P0136,Nordic Tent 136,Outdoor,Camping,75.99,42.96
+P0137,Studio Sleeping Bag 137,Outdoor,Camping,122.99,81.44
+P0138,Studio Camp Stove 138,Outdoor,Camping,185.99,93.41
+P0139,Linen Lantern 139,Outdoor,Camping,193.99,89.97
+P0140,Pebble Folding Chair 140,Outdoor,Camping,217.99,118.49
+P0141,Heritage Tent 141,Outdoor,Camping,249.99,141.57
+P0142,Terra Sleeping Bag 142,Outdoor,Camping,52.99,29.77
+P0143,Classic Camp Stove 143,Outdoor,Camping,204.99,96.49
+P0144,Classic Lantern 144,Outdoor,Camping,13.99,7.07
+P0145,Linen Folding Chair 145,Outdoor,Camping,100.99,55.32
+P0146,Terra Tent 146,Outdoor,Camping,28.99,18.68
+P0147,Modern Sleeping Bag 147,Outdoor,Camping,17.99,10.32
+P0148,Slate Camp Stove 148,Outdoor,Camping,104.99,62.29
+P0149,Urban Lantern 149,Outdoor,Camping,167.99,111.06
+P0150,Compact Folding Chair 150,Outdoor,Camping,150.99,101.48
+P0151,Oak Bistro Set 151,Outdoor,Patio,119.99,62.30
+P0152,Slate Parasol 152,Outdoor,Patio,113.99,52.19
+P0153,Terra Lounger 153,Outdoor,Patio,45.99,30.12
+P0154,Heritage Fire Bowl 154,Outdoor,Patio,45.99,25.35
+P0155,Terra Outdoor Rug 155,Outdoor,Patio,74.99,42.35
+P0156,Classic Bistro Set 156,Outdoor,Patio,85.99,52.75
+P0157,Oak Parasol 157,Outdoor,Patio,283.99,168.51
+P0158,Urban Lounger 158,Outdoor,Patio,301.99,169.63
+P0159,Studio Fire Bowl 159,Outdoor,Patio,34.99,23.25
+P0160,Slate Outdoor Rug 160,Outdoor,Patio,225.99,118.21
+P0161,Slate Bistro Set 161,Outdoor,Patio,62.99,34.60
+P0162,Oak Parasol 162,Outdoor,Patio,86.99,42.79
+P0163,Linen Lounger 163,Outdoor,Patio,49.99,22.94
+P0164,Everyday Fire Bowl 164,Outdoor,Patio,216.99,124.71
+P0165,Linen Outdoor Rug 165,Outdoor,Patio,96.99,52.56
+P0166,Linen Notebook 166,Office,Stationery,8.99,5.66
+P0167,Urban Pen Set 167,Office,Stationery,20.99,11.51
+P0168,Slate Planner 168,Office,Stationery,15.99,9.18
+P0169,Pebble Sticky Note Pack 169,Office,Stationery,3.99,2.41
+P0170,Urban Desk Pad 170,Office,Stationery,33.99,21.28
+P0171,Modern Notebook 171,Office,Stationery,30.99,21.45
+P0172,Willow Pen Set 172,Office,Stationery,3.99,2.27
+P0173,Urban Planner 173,Office,Stationery,16.99,10.99
+P0174,Willow Sticky Note Pack 174,Office,Stationery,3.99,2.14
+P0175,Linen Desk Pad 175,Office,Stationery,15.99,7.27
+P0176,Urban Notebook 176,Office,Stationery,22.99,10.71
+P0177,Pebble Pen Set 177,Office,Stationery,3.99,2.28
+P0178,Compact Planner 178,Office,Stationery,6.99,3.92
+P0179,Oak Sticky Note Pack 179,Office,Stationery,11.99,8.32
+P0180,Studio Desk Pad 180,Office,Stationery,15.99,8.81
+P0181,Nordic Monitor Stand 181,Office,Desk Accessories,32.99,22.70
+P0182,Compact Cable Tray 182,Office,Desk Accessories,57.99,26.19
+P0183,Urban Desk Organizer 183,Office,Desk Accessories,16.99,7.88
+P0184,Everyday Document Tray 184,Office,Desk Accessories,29.99,18.01
+P0185,Terra Laptop Riser 185,Office,Desk Accessories,32.99,19.47
+P0186,Oak Monitor Stand 186,Office,Desk Accessories,74.99,51.91
+P0187,Linen Cable Tray 187,Office,Desk Accessories,13.99,9.54
+P0188,Slate Desk Organizer 188,Office,Desk Accessories,7.99,4.62
+P0189,Heritage Document Tray 189,Office,Desk Accessories,16.99,11.43
+P0190,Nordic Laptop Riser 190,Office,Desk Accessories,14.99,10.34
+P0191,Everyday Monitor Stand 191,Office,Desk Accessories,40.99,23.22
+P0192,Studio Cable Tray 192,Office,Desk Accessories,30.99,20.64
+P0193,Everyday Desk Organizer 193,Office,Desk Accessories,18.99,10.99
+P0194,Heritage Document Tray 194,Office,Desk Accessories,10.99,7.66
+P0195,Classic Laptop Riser 195,Office,Desk Accessories,15.99,9.76
+P0196,Everyday Task Chair 196,Office,Office Furniture,478.99,234.93
+P0197,Heritage Standing Desk 197,Office,Office Furniture,371.99,250.94
+P0198,Nordic Bookcase 198,Office,Office Furniture,426.99,275.40
+P0199,Heritage Filing Cabinet 199,Office,Office Furniture,165.99,103.03
+P0200,Nordic Footrest 200,Office,Office Furniture,86.99,59.63
+P0201,Pebble Task Chair 201,Office,Office Furniture,185.99,104.80
+P0202,Heritage Standing Desk 202,Office,Office Furniture,179.99,91.96
+P0203,Slate Bookcase 203,Office,Office Furniture,474.99,254.24
+P0204,Modern Filing Cabinet 204,Office,Office Furniture,288.99,200.62
+P0205,Modern Footrest 205,Office,Office Furniture,190.99,127.32
+P0206,Studio Task Chair 206,Office,Office Furniture,331.99,164.21
+P0207,Heritage Standing Desk 207,Office,Office Furniture,237.99,136.99
+P0208,Classic Bookcase 208,Office,Office Furniture,328.99,199.66
+P0209,Willow Filing Cabinet 209,Office,Office Furniture,63.99,44.00
+P0210,Modern Footrest 210,Office,Office Furniture,118.99,60.72
+P0211,Linen Yoga Mat 211,Fitness,Yoga,40.99,20.09
+P0212,Classic Yoga Block Pair 212,Fitness,Yoga,22.99,14.93
+P0213,Slate Strap 213,Fitness,Yoga,16.99,11.16
+P0214,Studio Meditation Cushion 214,Fitness,Yoga,21.99,10.41
+P0215,Linen Mat Bag 215,Fitness,Yoga,32.99,16.41
+P0216,Everyday Yoga Mat 216,Fitness,Yoga,23.99,12.20
+P0217,Heritage Yoga Block Pair 217,Fitness,Yoga,55.99,28.46
+P0218,Linen Strap 218,Fitness,Yoga,33.99,16.44
+P0219,Urban Meditation Cushion 219,Fitness,Yoga,35.99,20.32
+P0220,Willow Mat Bag 220,Fitness,Yoga,12.99,8.78
+P0221,Nordic Yoga Mat 221,Fitness,Yoga,21.99,14.58
+P0222,Oak Yoga Block Pair 222,Fitness,Yoga,47.99,30.81
+P0223,Urban Strap 223,Fitness,Yoga,15.99,7.62
+P0224,Oak Meditation Cushion 224,Fitness,Yoga,18.99,9.44
+P0225,Terra Mat Bag 225,Fitness,Yoga,12.99,7.59
+P0226,Urban Dumbbell Pair 226,Fitness,Strength,27.99,12.89
+P0227,Urban Kettlebell 227,Fitness,Strength,21.99,11.09
+P0228,Classic Resistance Band Set 228,Fitness,Strength,64.99,42.75
+P0229,Urban Weight Bench 229,Fitness,Strength,25.99,12.66
+P0230,Everyday Pull-Up Bar 230,Fitness,Strength,35.99,23.29
+P0231,Pebble Dumbbell Pair 231,Fitness,Strength,46.99,27.53
+P0232,Terra Kettlebell 232,Fitness,Strength,208.99,122.88
+P0233,Nordic Resistance Band Set 233,Fitness,Strength,178.99,121.83
+P0234,Heritage Weight Bench 234,Fitness,Strength,38.99,18.93
+P0235,Oak Pull-Up Bar 235,Fitness,Strength,19.99,12.63
+P0236,Everyday Dumbbell Pair 236,Fitness,Strength,151.99,74.09
+P0237,Compact Kettlebell 237,Fitness,Strength,124.99,69.35
+P0238,Slate Resistance Band Set 238,Fitness,Strength,36.99,21.92
+P0239,Compact Weight Bench 239,Fitness,Strength,27.99,18.34
+P0240,Everyday Pull-Up Bar 240,Fitness,Strength,118.99,74.18
+P0241,Classic Jump Rope 241,Fitness,Cardio Accessories,60.99,28.51
+P0242,Pebble Step Platform 242,Fitness,Cardio Accessories,8.99,6.25
+P0243,Slate Heart Rate Strap 243,Fitness,Cardio Accessories,39.99,27.65
+P0244,Everyday Exercise Mat 244,Fitness,Cardio Accessories,20.99,13.23
+P0245,Nordic Agility Ladder 245,Fitness,Cardio Accessories,114.99,67.90
+P0246,Nordic Jump Rope 246,Fitness,Cardio Accessories,10.99,6.92
+P0247,Pebble Step Platform 247,Fitness,Cardio Accessories,32.99,22.22
+P0248,Terra Heart Rate Strap 248,Fitness,Cardio Accessories,70.99,39.42
+P0249,Slate Exercise Mat 249,Fitness,Cardio Accessories,79.99,38.63
+P0250,Classic Agility Ladder 250,Fitness,Cardio Accessories,43.99,29.79
+P0251,Heritage Jump Rope 251,Fitness,Cardio Accessories,63.99,35.81
+P0252,Terra Step Platform 252,Fitness,Cardio Accessories,22.99,14.32
+P0253,Slate Heart Rate Strap 253,Fitness,Cardio Accessories,33.99,22.94
+P0254,Modern Exercise Mat 254,Fitness,Cardio Accessories,12.99,6.55
+P0255,Oak Agility Ladder 255,Fitness,Cardio Accessories,14.99,9.05
+P0256,Pebble Building Blocks 256,Kids,Toys,7.99,5.27
+P0257,Willow Plush Bear 257,Kids,Toys,17.99,9.23
+P0258,Compact Puzzle 258,Kids,Toys,9.99,6.38
+P0259,Oak Train Set 259,Kids,Toys,54.99,31.76
+P0260,Compact Play Kitchen 260,Kids,Toys,17.99,11.07
+P0261,Pebble Building Blocks 261,Kids,Toys,76.99,50.98
+P0262,Modern Plush Bear 262,Kids,Toys,35.99,20.53
+P0263,Compact Puzzle 263,Kids,Toys,64.99,41.44
+P0264,Modern Train Set 264,Kids,Toys,27.99,16.97
+P0265,Everyday Play Kitchen 265,Kids,Toys,8.99,6.00
+P0266,Linen Building Blocks 266,Kids,Toys,27.99,12.99
+P0267,Oak Plush Bear 267,Kids,Toys,51.99,24.12
+P0268,Pebble Puzzle 268,Kids,Toys,36.99,22.98
+P0269,Willow Train Set 269,Kids,Toys,11.99,7.20
+P0270,Compact Play Kitchen 270,Kids,Toys,53.99,32.26
+P0271,Linen Flash Card Set 271,Kids,Learning,14.99,9.07
+P0272,Linen Globe 272,Kids,Learning,9.99,5.75
+P0273,Modern Science Kit 273,Kids,Learning,10.99,6.13
+P0274,Modern Abacus 274,Kids,Learning,12.99,7.24
+P0275,Pebble Picture Book Set 275,Kids,Learning,17.99,11.34
+P0276,Everyday Flash Card Set 276,Kids,Learning,8.99,5.80
+P0277,Pebble Globe 277,Kids,Learning,10.99,7.16
+P0278,Nordic Science Kit 278,Kids,Learning,34.99,18.19
+P0279,Heritage Abacus 279,Kids,Learning,15.99,10.84
+P0280,Terra Picture Book Set 280,Kids,Learning,10.99,6.27
+P0281,Pebble Flash Card Set 281,Kids,Learning,9.99,5.81
+P0282,Linen Globe 282,Kids,Learning,60.99,31.54
+P0283,Pebble Science Kit 283,Kids,Learning,9.99,5.47
+P0284,Nordic Abacus 284,Kids,Learning,25.99,11.95
+P0285,Urban Picture Book Set 285,Kids,Learning,68.99,45.22
+P0286,Nordic Crib Mobile 286,Kids,Nursery,81.99,53.11
+P0287,Slate Changing Mat 287,Kids,Nursery,97.99,58.95
+P0288,Everyday Night Light 288,Kids,Nursery,15.99,8.67
+P0289,Linen Storage Basket 289,Kids,Nursery,29.99,13.52
+P0290,Classic Rocking Chair 290,Kids,Nursery,35.99,19.34
+P0291,Pebble Crib Mobile 291,Kids,Nursery,193.99,134.39
+P0292,Linen Changing Mat 292,Kids,Nursery,31.99,20.90
+P0293,Compact Night Light 293,Kids,Nursery,111.99,56.68
+P0294,Compact Storage Basket 294,Kids,Nursery,24.99,11.77
+P0295,Compact Rocking Chair 295,Kids,Nursery,106.99,50.97
+P0296,Studio Crib Mobile 296,Kids,Nursery,22.99,15.38
+P0297,Nordic Changing Mat 297,Kids,Nursery,17.99,11.74
+P0298,Compact Night Light 298,Kids,Nursery,37.99,18.04
+P0299,Slate Storage Basket 299,Kids,Nursery,94.99,43.52
+P0300,Willow Rocking Chair 300,Kids,Nursery,46.99,29.89

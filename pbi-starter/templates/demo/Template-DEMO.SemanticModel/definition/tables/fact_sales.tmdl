@@ -1,0 +1,227 @@
+/// Sales: one row per order line, every status included. Revenue and cost columns are filled on billable lines only.
+table fact_sales
+	lineageTag: 69b4befe-381d-4399-b004-a1d61e288dd6
+
+	/// Order number. An order has one to five lines.
+	column 'Order ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0054752d-5972-4c98-9641-b51596f2da79
+		summarizeBy: none
+		sourceColumn: Order ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Line number within the order. (Order ID, Line No) is the row key.
+	column 'Line No'
+		dataType: int64
+		formatString: 0
+		lineageTag: e20b9572-edd2-4a89-9338-ca4b2682e709
+		summarizeBy: none
+		sourceColumn: Line No
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the order was placed. Joins dim_date[Date].
+	column 'Order Date'
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		lineageTag: a6103e7a-7786-44a3-84f0-c995e02c7175
+		summarizeBy: none
+		sourceColumn: Order Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date the line shipped. Blank for Processing and Cancelled lines, and where the source value was junk. Not related to dim_date: its blanks would add a (Blank) member to every date slicer.
+	column 'Ship Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 0837ef24-491b-4b7c-b7ab-e95b5b937b2d
+		summarizeBy: none
+		sourceColumn: Ship Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Customer key. Ids missing from customers.csv are mapped to UNKNOWN. Joins dim_customer[Customer ID].
+	column 'Customer ID'
+		dataType: string
+		isHidden
+		lineageTag: 25576de7-5883-4946-a6ea-8bea81339c6a
+		summarizeBy: none
+		sourceColumn: Customer ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Product key. Joins dim_product[Product ID].
+	column 'Product ID'
+		dataType: string
+		isHidden
+		lineageTag: 5c9bafca-ff1a-4391-9115-cad62226e76b
+		summarizeBy: none
+		sourceColumn: Product ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Product category, copied from the product catalog. Joins dim_category[Category].
+	column Category
+		dataType: string
+		isHidden
+		lineageTag: e66de1d1-d1b3-45f4-8dcd-fde4a9898b58
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Order status: Delivered, Shipped, Processing, Cancelled or Returned.
+	column Status
+		dataType: string
+		lineageTag: fbcd1532-df51-4a9e-92d2-3beb3bed8b8a
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Units ordered. Blank where the source value was junk.
+	column Quantity
+		dataType: int64
+		formatString: #,0
+		lineageTag: 5d85d36b-54fa-458c-a381-28dbe826a8b6
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Price of one unit on the order, before discount. Blank where the source value was junk.
+	column 'Unit Price'
+		dataType: decimal
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: fc1ba39b-d9dc-4263-9765-0f41430216cd
+		summarizeBy: none
+		sourceColumn: Unit Price
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Discount as a fraction of the line amount, 0% to 20%. Blank where the source value was junk.
+	column Discount
+		dataType: double
+		formatString: 0%
+		lineageTag: 2e238eb8-4265-4e87-8109-69e1b7adb911
+		summarizeBy: none
+		sourceColumn: Discount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// True unless the line is Cancelled (never billed) or Returned (refunded).
+	column 'Is Billable'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 825913e2-8386-4c32-852c-6a34daf12f04
+		summarizeBy: none
+		sourceColumn: Is Billable
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Quantity × Unit Price × (1 − Discount) on billable lines. Blank on non-billable lines and where a factor was junk.
+	column 'Line Revenue'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 6d7844e6-4b72-42f1-b24b-cda9aaaabe6b
+		summarizeBy: sum
+		sourceColumn: Line Revenue
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Quantity × the product's unit cost, only where Line Revenue is filled, so margin compares like with like.
+	column 'Line Cost'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: caf2c560-f5ce-4338-a97a-cfb3e40fd69d
+		summarizeBy: sum
+		sourceColumn: Line Cost
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Days from order to shipment. Blank until the line ships; negative on the lines flagged Shipped Before Order.
+	column 'Ship Lag Days'
+		dataType: int64
+		formatString: 0
+		lineageTag: df29e28c-7bc8-4165-8d92-a4632f15a4ce
+		summarizeBy: none
+		sourceColumn: Ship Lag Days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// True when the ship date is earlier than the order date, a source defect kept as delivered and listed in _DataQualityIssues.
+	column 'Shipped Before Order'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 65096468-1992-4aa3-87ab-832cf3d32ed1
+		summarizeBy: none
+		sourceColumn: Shipped Before Order
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_sales = m
+		mode: import
+		queryGroup: Model
+		source =
+				let
+					// Typed, scrubbed, guarded order lines from staging
+					Source = stg_orders,
+					// Known customer ids, renamed so the join does not clash with the order's own customer_id
+					KnownCustomers = Table.RenameColumns(Table.SelectColumns(stg_customers, {"customer_id"}), {{"customer_id", "known_customer_id"}}),
+					// Left join: a line whose customer is missing from customers.csv finds no match
+					JoinedCustomers = Table.Join(Source, "customer_id", KnownCustomers, "known_customer_id", JoinKind.LeftOuter),
+					// Orphan customer ids map to the UNKNOWN member of dim_customer; the originals are listed in _DataQualityIssues
+					MappedCustomer = Table.AddColumn(JoinedCustomers, "Customer ID", each if [known_customer_id] = null then "UNKNOWN" else [customer_id], type text),
+					// Product attributes the line needs: its category (key to dim_category) and unit cost (for line cost)
+					ProductLookup = Table.RenameColumns(Table.SelectColumns(stg_products, {"product_id", "category", "unit_cost"}), {{"product_id", "lookup_product_id"}}),
+					JoinedProducts = Table.Join(MappedCustomer, "product_id", ProductLookup, "lookup_product_id", JoinKind.LeftOuter),
+					// Guard: every product id must exist in products.csv, or its lines would land on a blank category with no cost
+					UnknownProducts = List.Distinct(Table.SelectRows(JoinedProducts, each [lookup_product_id] = null)[product_id]),
+					GuardedProduct =
+						if List.IsEmpty(UnknownProducts) then JoinedProducts
+						else error Error.Record("Unknown product", "orders.csv has " & Text.From(List.Count(UnknownProducts)) & " product id(s) missing from products.csv, e.g. " & Text.Combine(List.FirstN(UnknownProducts, 5), ", ")),
+					// Billable: the line was neither cancelled (never billed) nor returned (refunded)
+					AddedIsBillable = Table.AddColumn(GuardedProduct, "Is Billable", each not List.Contains({"Cancelled", "Returned"}, [status]), type logical),
+					// Line revenue = quantity × unit price × (1 − discount), on billable lines with all three factors present
+					AddedLineRevenue = Table.AddColumn(AddedIsBillable, "Line Revenue", each
+						if [Is Billable] and [quantity] <> null and [unit_price] <> null and [discount] <> null
+						then Currency.From([quantity] * [unit_price] * (1 - [discount]))
+						else null, Currency.Type),
+					// Line cost = quantity × unit cost, only where line revenue exists, so margin compares like with like
+					AddedLineCost = Table.AddColumn(AddedLineRevenue, "Line Cost", each if [Line Revenue] = null then null else Currency.From([quantity] * [unit_cost]), Currency.Type),
+					// Days from order to shipment; null until the line ships
+					AddedShipLag = Table.AddColumn(AddedLineCost, "Ship Lag Days", each if [ship_date] = null then null else Duration.Days([ship_date] - [order_date]), Int64.Type),
+					// Flag for the source defect of a ship date earlier than the order date
+					AddedShippedBeforeOrder = Table.AddColumn(AddedShipLag, "Shipped Before Order", each [ship_date] <> null and [ship_date] < [order_date], type logical),
+					// Keep the model columns, in display order
+					SelectedColumns = Table.SelectColumns(AddedShippedBeforeOrder, {
+						"order_id", "line_no", "order_date", "ship_date", "Customer ID", "product_id", "category", "status",
+						"quantity", "unit_price", "discount", "Is Billable", "Line Revenue", "Line Cost", "Ship Lag Days", "Shipped Before Order"
+					}),
+					// Friendly names for the field list
+					Renamed = Table.RenameColumns(SelectedColumns, {
+						{"order_id", "Order ID"},
+						{"line_no", "Line No"},
+						{"order_date", "Order Date"},
+						{"ship_date", "Ship Date"},
+						{"product_id", "Product ID"},
+						{"category", "Category"},
+						{"status", "Status"},
+						{"quantity", "Quantity"},
+						{"unit_price", "Unit Price"},
+						{"discount", "Discount"}
+					})
+				in
+					Renamed
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,134 @@
+/// Customers: one row per customer, plus an UNKNOWN member for order lines whose customer is missing from customers.csv.
+table dim_customer
+	lineageTag: 038b659b-679d-4a03-8468-4f0c33b00639
+
+	/// Customer key, e.g. C00042. UNKNOWN for the catch-all member.
+	column 'Customer ID'
+		dataType: string
+		lineageTag: f4bc5380-d18f-49a0-9892-4f43f80dea5e
+		summarizeBy: none
+		sourceColumn: Customer ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Customer full name. Not unique: two customers can share a name.
+	column 'Customer Name'
+		dataType: string
+		lineageTag: 19ff315b-907e-42be-b1b9-aff142e40d60
+		summarizeBy: none
+		sourceColumn: Customer Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Customer's city.
+	column City
+		dataType: string
+		lineageTag: 47981689-e931-4c8f-bf11-56cc87fbe361
+		summarizeBy: none
+		sourceColumn: City
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Sales region: North, South, East, West or Central.
+	column Region
+		dataType: string
+		lineageTag: 1bdf339e-3212-4d78-9e23-323fbf8f58bd
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Customer segment: Consumer, Small Business or Corporate.
+	column Segment
+		dataType: string
+		lineageTag: 7223a018-2175-4ecc-951d-1c61b42e4eec
+		summarizeBy: none
+		sourceColumn: Segment
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the customer signed up. Blank for the UNKNOWN member.
+	column 'Signup Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 6bb03824-5288-4857-8c05-2a043d9d68e2
+		summarizeBy: none
+		sourceColumn: Signup Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Invented centre of the customer's region, only so the demo can show a map. The regions aren't real places.
+	column 'Region Latitude'
+		dataType: double
+		lineageTag: e671502a-2b17-4de5-907e-9804788741a9
+		dataCategory: Latitude
+		summarizeBy: none
+		sourceColumn: Region Latitude
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Invented centre of the customer's region, only so the demo can show a map. The regions aren't real places.
+	column 'Region Longitude'
+		dataType: double
+		lineageTag: ad0ecde7-94ee-458e-a3fd-7fc597b95592
+		dataCategory: Longitude
+		summarizeBy: none
+		sourceColumn: Region Longitude
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Invented home state inside the customer's region, only so the demo can show a shape map. Blank for the UNKNOWN member.
+	column State
+		dataType: string
+		lineageTag: 8c142b47-1cae-4b6c-b181-b7f637e11ae2
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: State
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_customer = m
+		mode: import
+		queryGroup: Model
+		source =
+				let
+					// Typed, guarded customers from staging
+					Source = stg_customers,
+					// Catch-all member that orphan order lines map to, so no sale falls on a blank customer
+					UnknownMember = #table(Value.Type(Source), {{"UNKNOWN", "Unknown customer", "Unknown", "Unknown", "Unknown", null}}),
+					WithUnknown = Table.Combine({Source, UnknownMember}),
+					// Guard: the UNKNOWN key must not collide with a real customer id
+					GuardedKey = _AssertUniqueKey(WithUnknown, {"customer_id"}, "dim_customer"),
+					// Friendly names for the field list
+					Renamed = Table.RenameColumns(GuardedKey, {
+						{"customer_id", "Customer ID"},
+						{"customer_name", "Customer Name"},
+						{"city", "City"},
+						{"region", "Region"},
+						{"segment", "Segment"},
+						{"signup_date", "Signup Date"}
+					}),
+					// Invented centre points, only so the demo can show a map: the regions aren't real places
+					RegionCentres = [North = {46.0, -100.0}, South = {31.0, -90.0}, East = {40.0, -76.0}, West = {38.0, -120.0}, Central = {39.0, -95.0}],
+					WithLatitude = Table.AddColumn(Renamed, "Region Latitude", each Record.FieldOrDefault(RegionCentres, [Region], {null, null}){0}, type nullable number),
+					WithLongitude = Table.AddColumn(WithLatitude, "Region Longitude", each Record.FieldOrDefault(RegionCentres, [Region], {null, null}){1}, type nullable number),
+					// Invented states per region, named as the shape map's US states map expects
+					RegionStates = [
+						North = {"Montana", "North Dakota", "South Dakota", "Minnesota", "Wisconsin", "Michigan"},
+						South = {"Texas", "Oklahoma", "Louisiana", "Arkansas", "Mississippi", "Alabama", "Georgia", "Florida", "Tennessee"},
+						East = {"Maine", "New Hampshire", "Vermont", "Massachusetts", "New York", "Pennsylvania", "New Jersey", "Maryland", "Virginia", "North Carolina", "Ohio"},
+						West = {"Washington", "Oregon", "California", "Nevada", "Idaho", "Utah", "Arizona", "New Mexico", "Wyoming"},
+						Central = {"Colorado", "Kansas", "Nebraska", "Iowa", "Missouri", "Illinois", "Indiana", "Kentucky"}
+					],
+					// The customer number picks the state, so it never changes between refreshes
+					WithState = Table.AddColumn(WithLongitude, "State", each
+						let States = Record.FieldOrDefault(RegionStates, [Region], null)
+						in if States = null then null else States{Number.Mod(Number.FromText(Text.Middle([Customer ID], 1)), List.Count(States))},
+						type nullable text)
+				in
+					WithState
+
+	annotation PBI_ResultType = Table
+

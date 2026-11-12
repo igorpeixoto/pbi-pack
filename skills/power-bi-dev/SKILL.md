@@ -13,7 +13,7 @@ description: >
 
 This is a **policy skill**, not a construction skill. It does not edit `.pbip` files or generate documents directly; it establishes rules followed by **all** `power-bi-*` skills.
 
-**When invoked:** confirm which stage the project is currently in, inform the user of current and next steps, and enforce the policies below. If starting a project, Stage 1 (Scope) is a **conversational alignment** — not a formal document. Also run the **Governance Freshness Check** (§5) once per invocation.
+**When invoked:** confirm which stage the project is currently in — from `docs/STATE.md` (§6), which the session-start hook has usually already printed; never by re-reading `definition/` to work it out — inform the user of current and next steps, and enforce the policies below. If starting a project, Stage 1 (Scope) is a **conversational alignment** — not a formal document. Also run the **Governance Freshness Check** (§5) once per invocation.
 
 ---
 
@@ -77,8 +77,9 @@ delay the move to Stage 2.
   1. Add a summary line under `[Unreleased]` in `CHANGELOG.md`.
   2. **Quality pass (offer, don't impose).** For stages that produce real logic — Stage 3 (M) above all, then Stage 4 (DAX) — offer to run the built-in **`/code-review`** skill on the M this stage wrote: `/code-review medium <Project>.SemanticModel/definition/expressions.tmdl`, or the specific table files touched — **never the whole `definition/` folder**, which is mostly the TMDL metadata the reviewer is weakest on. A stage's conversation is long by the time the stage ends, so the pass belongs in a fresh session; see **CLAUDE.md Hard Rule #20** for the level, target, and session rules that bind every invocation. Use **`/simplify`** instead when the goal is cleanup only (reuse, dead steps, over-complex expressions) rather than bug-hunting. Two limits to state plainly when offering: it reads **M and TypeScript** well but is thin on TMDL metadata and PBIR JSON — so skip it for Stage 5 output — and a clean pass is **never** a substitute for the Desktop Validation Gate (CLAUDE.md Hard Rule #18), which stays mandatory either way.
   3. **Escalation before the irreversible stage exit (CLAUDE.md §8).** At the **Stage 3 exit**, before committing the fact grain and star design, consult the advisor if it is on — that decision is the one a later fix turns into a MAJOR bump. If the advisor is off, declined, or not attached, climb the CLAUDE.md §8 escalation ladder first, then put the grain decision to the user as an `AskUserQuestion` checkpoint instead. At other stage exits the Desktop refresh is the check; do not spend an advisor call there by default.
-  4. Verify Power BI Desktop is closed and commit to Git (e.g., `git commit -m "feat(etl): complete M transformations for fSales"`).
-  5. **Notify the user of stage completion and await explicit authorization** before starting the next stage.
+  4. **Record the state (§6).** Update `docs/STATE.md` and regenerate the project maps, so both go into this stage's commit and the next session starts from them.
+  5. Verify Power BI Desktop is closed and commit to Git (e.g., `git commit -m "feat(etl): complete M transformations for fSales"`).
+  6. **Notify the user of stage completion and await explicit authorization** before starting the next stage — and in the same message recommend a **`/clear`** before it starts (§6).
 - **Release Protocol (`power-bi-release`).** Claude Code can manage release versions upon request or milestone completion: determine version bump (MAJOR/MINOR/PATCH), rename `[Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` in `CHANGELOG.md`, open a new `[Unreleased]` section, and generate annotated Git tags (`vX.Y.Z`).
 - **Backup Policy.** Never automatic or in temp folders. Ask the user (`AskUserQuestion`) before major operations (bulk object deletes, `import-tmdl`, heavy refresh, structural refactoring). Save backups in `<ProjectDir>/backups/<YYYY-MM-DD>_<HHmm>_<reason>/`.
 
@@ -127,3 +128,21 @@ The `SessionStart` hook installed by `scripts/install-pbi-sync.sh` already perfo
 3. **Match →** say nothing, continue with the rest of Step Zero.
 4. **Mismatch →** tell the user this project's governance block is behind the pack's canonical version. Point them at the pack's `CHANGELOG.md` (`[Unreleased]` plus the most recent release heading) for what changed, and ask (`AskUserQuestion`) whether to update now.
 5. **If yes:** read the canonical file's content between `<!-- BEGIN power-bi-skills -->` and `<!-- END power-bi-skills -->` (inclusive — this carries the correct hash line along with it), and replace exactly that span in the project's `CLAUDE.md` with it. Never touch anything before `BEGIN` or after `END` — that's where project-specific additions (if any) live, and they must survive the update untouched.
+
+---
+
+## 6. Session Continuity — `docs/STATE.md`, the Project Maps, `/clear`
+
+Every request re-sends the whole conversation, so a session that carries Stage 2's profiling output into Stage 5 pays for it on every later turn. The stage checkpoints are the natural places to drop it. Three pieces make that safe:
+
+**`docs/STATE.md` — where the project stands.** Hand-written, short (a status page, not a log — the session-start hook prints at most its first 4,000 characters), committed. Created at the end of Stage 1 from the starter's template; updated at every stage exit (§3 step 4) and whenever a decision in it changes. It holds what cannot be re-derived from the files: the current stage and exact next step, the Project Artifact Language, the fact grain and star design once decided, page layout choices, what the user approved or refused, and open checkpoints (a Desktop Validation Gate not yet confirmed, an advisor consult still owed). History belongs in `CHANGELOG.md` and git, not here.
+
+**`docs/model-map.md` and `docs/report-map.md` — where things are.** Generated, never hand-edited, not committed:
+
+```bash
+python ~/.claude/skills/power-bi-dev/scripts/pbi_map.py        # from the project root
+```
+
+The model map lists every table (file, storage mode, source, columns), every measure by `displayFolder` with its **line number**, the relationships and the shared M expressions; the report map lists pages ➔ groups ➔ visuals with type, folder id, **absolute** position and bound fields, and flags any visible visual that lands outside its page (the Hard Rule 23 symptom). Read the map, then `Read` only the file or line range it points at. Regenerate when the session-start hook reports the maps *missing* or *STALE*, after any batch of edits under `definition/`, and at every stage exit. Both maps list the files that must never be read whole — `cultures/*.tmdl` above all.
+
+**`/clear` at every stage checkpoint.** Once the stage is committed and `STATE.md` is current, the conversation that produced it has no further use: recommend `/clear` when asking for authorization to start the next stage. The `SessionStart` hook re-prints `STATE.md` and the map status after `/clear` and after an automatic compaction, so the next turn starts oriented. Do not clear mid-stage with uncommitted work unless `STATE.md` says what is half-done.

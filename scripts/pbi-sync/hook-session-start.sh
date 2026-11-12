@@ -2,13 +2,86 @@
 # SessionStart hook: advisory, plus one background job — the pack auto-update below, which pulls
 # the pack and lets its post-merge hook refresh ~/.claude/. Everything else reads state only.
 #
-# Deliberately NOT matched on the "clear" source: /clear is routine (CLAUDE.md Hard Rule 20 makes
-# it so), and re-announcing publish state on every context clear is noise.
+# Wired by scripts/install-pbi-sync.sh, which also migrates an older "startup|resume" matcher.
+#
+# Matched on all four sources (startup|resume|clear|compact), but what it prints depends on which:
+#   startup, resume   everything below: governance freshness, project state, pack auto-update,
+#                     publish state.
+#   clear, compact    ONLY the project-state block. /clear is routine (CLAUDE.md Hard Rule 20 and the
+#                     stage checkpoints make it so) and a compaction happens mid-task: re-announcing
+#                     publish state there is noise, but docs/STATE.md and the map status are exactly
+#                     what the emptied context needs back. That block is what makes a /clear free.
+#
+# Whatever this prints is added to the model's context, and Claude Code caps hook output at 10,000
+# characters. Keep every block short: this runs in every session, and each line is paid for on
+# every later request of that session.
 #
 # Always exits 0. A hook that can fail a session start is a hook that will, at the worst moment.
 
 PBI_SYNC_HOME="${PBI_SYNC_HOME:-$HOME/.claude/pbi-sync}"
 BIN="$PBI_SYNC_HOME/bin"
+
+# The hook input is one JSON object on stdin; "source" says why the session (re)started. Run by
+# hand from a terminal there is no stdin to read, and the source defaults to startup.
+SOURCE=startup
+if [ ! -t 0 ]; then
+    HOOK_IN=$(cat 2>/dev/null)
+    s=$(printf '%s' "$HOOK_IN" | tr -d '\r\n' | sed -n 's/.*"source"[[:space:]]*:[[:space:]]*"\([a-z]*\)".*/\1/p')
+    [ -n "$s" ] && SOURCE=$s
+fi
+
+# --- Project state (docs/STATE.md + the generated maps) ------------------------------------------
+# Only in a Power BI project root: a *.pbip next to this CLAUDE.md, or a STATE.md already written.
+# STATE.md is printed (capped) rather than pointed at, so the next turn does not spend a tool call
+# on it; the maps are only reported on - current, stale or missing - never printed.
+STATE_MAX_CHARS=4000
+MAP_CMD='python ~/.claude/skills/power-bi-dev/scripts/pbi_map.py'
+project_state() {
+    has_pbip=
+    for f in ./*.pbip; do
+        if [ -e "$f" ]; then has_pbip=$f; break; fi
+    done
+    [ -n "$has_pbip" ] || [ -f docs/STATE.md ] || return 0
+
+    if [ -s docs/STATE.md ]; then
+        printf 'project state (docs/STATE.md - update it at every stage exit, power-bi-dev §6):\n'
+        head -c "$STATE_MAX_CHARS" docs/STATE.md
+        [ "$(wc -c < docs/STATE.md)" -gt "$STATE_MAX_CHARS" ] && printf '\n[... docs/STATE.md is longer than %s characters: trim it, it is a status page, not a log]' "$STATE_MAX_CHARS"
+        printf '\n'
+    else
+        printf 'project state: no docs/STATE.md yet - confirm the current stage with the user and write it (power-bi-dev §6)\n'
+    fi
+
+    [ -n "$has_pbip" ] || return 0
+    if [ -f docs/model-map.md ] && [ -f docs/report-map.md ]; then
+        older=docs/model-map.md
+        [ docs/report-map.md -ot docs/model-map.md ] && older=docs/report-map.md
+        n=$(find . -maxdepth 2 -type d -name definition -path './*.*/definition' 2>/dev/null \
+            | while IFS= read -r d; do find "$d" -type f -newer "$older" 2>/dev/null; done | head -200 | wc -l | tr -d ' ')
+        if [ "$n" = "0" ]; then
+            printf 'project maps: docs/model-map.md and docs/report-map.md are current - read them before opening anything under definition/\n'
+        else
+            printf 'project maps: STALE - %s file(s) under definition/ changed since they were generated. Regenerate before relying on them: %s\n' "$n" "$MAP_CMD"
+        fi
+    else
+        printf 'project maps: missing - generate them before opening anything under definition/: %s\n' "$MAP_CMD"
+    fi
+
+    # After a compaction the conversation no longer shows what is uncommitted; git still does.
+    if [ "$SOURCE" = "compact" ] && [ -d .git ]; then
+        br=$(git symbolic-ref --quiet --short HEAD 2>/dev/null)
+        dirty=$(git status --porcelain 2>/dev/null | head -20)
+        if [ -n "$dirty" ]; then
+            printf 'uncommitted on %s (first 20):\n%s\n' "${br:-detached HEAD}" "$dirty"
+        else
+            printf 'working tree clean on %s\n' "${br:-detached HEAD}"
+        fi
+    fi
+}
+
+case "$SOURCE" in
+    clear|compact) project_state; exit 0 ;;
+esac
 
 # --- Governance freshness (power-bi-dev §5 / power-bi-visual-dev §7, done deterministically) ---
 # Compares this project's governance hash against the pack on disk and prints one line when it
@@ -38,6 +111,8 @@ if [ -f CLAUDE.md ] && [ -d "$PACK" ] && [ "$(cd "$PACK" 2>/dev/null && pwd -P)"
         break
     done
 fi
+
+project_state
 
 # --- Pack auto-update ----------------------------------------------------------------------------
 # Keeps every machine on the pack's main without anyone running `git pull`: at most once every

@@ -262,8 +262,8 @@ The pack ships no `user/settings.json` and the installer sets neither of these, 
 {
   "model": "sonnet[1m]",
   "effortLevel": "high",
+  "autoCompactWindow": 250000,
   "env": {
-    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "250000",
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
   }
 }
@@ -272,12 +272,12 @@ The pack ships no `user/settings.json` and the installer sets neither of these, 
 | Key | What it does |
 | --- | --- |
 | `model`, `effortLevel` | The first rung of the pairing ladder above: Sonnet writes the code at effort `high`. `advisorModel` and `fallbackModel` can sit beside them. |
-| `env.CLAUDE_CODE_AUTO_COMPACT_WINDOW` | How full the context gets before Claude Code compacts it, in tokens, from `100000` to `1000000`. Without it, a model with a 1M window compacts at about 967K. While the variable is set it wins over `/autocompact` and the `autoCompactWindow` setting; use that setting in its place if you want `/autocompact` to keep working per session. |
+| `autoCompactWindow` | How full the context gets before Claude Code compacts it, in tokens, from `100000` to `1000000`, capped at the model's window. Without it, a model with a 1M window compacts at about 967K. It stays adjustable: `--autocompact` overrides it for one session, and `/autocompact` saves a window for the current model under `modelSettings`, which then takes precedence over this key in the same file for that model. The `CLAUDE_CODE_AUTO_COMPACT_WINDOW` environment variable sets the same threshold but wins over the key and the flag, so use it only when the value must not be changed from inside a session. |
 | `env.CLAUDE_CODE_SUBAGENT_MODEL` | The default model for subagents that are not given one another way, so they stop inheriting the main model. It is a default: a model passed for one call, or the `model` field in an agent's definition, still wins, and it does not change the built-in Explore and Plan agents. |
 
-Both variables are described here from the Claude Code documentation ([model configuration](https://code.claude.com/docs/en/model-config), [subagents](https://code.claude.com/docs/en/sub-agents)) as it read in November 2026; the pack has no test that proves either takes effect in a live session, so confirm it on your machine (that documentation says `/autocompact` reports the override while the variable is set). `250000` is a starting point: lower it for shorter sessions, raise it if compactions interrupt long stages.
+Both settings are described here from the Claude Code documentation ([settings reference](https://code.claude.com/docs/en/settings-reference#autocompactwindow), [model configuration](https://code.claude.com/docs/en/model-config), [subagents](https://code.claude.com/docs/en/sub-agents)) as it read in November 2026; the pack has no test that proves either takes effect in a live session, so confirm it on your machine. `250000` is a starting point: lower it for shorter sessions, raise it if compactions interrupt long stages.
 
-`sync-user-settings.sh` merges `env` variable by variable: variables in your `user/settings.json` are added, a variable only one machine sets stays there, and a value you changed locally is kept and reported, like every other managed key.
+`sync-user-settings.sh` treats `autoCompactWindow` like any other managed key and merges `env` variable by variable: variables in your `user/settings.json` are added, a variable only one machine sets stays there, and a value you changed locally is kept and reported, like every other managed key.
 
 ---
 

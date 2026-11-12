@@ -12,7 +12,7 @@ This tracks the pack itself, not a Power BI project — `pbi-starter/CHANGELOG.m
 - The `SessionStart` hook now also runs on `clear` and `compact`, where it prints only the project state (`docs/STATE.md`, whether the maps are current, and after a compaction what is uncommitted); `install-pbi-sync.sh` widens an existing `startup|resume` matcher
 - `.claude/settings.json` (and its `pbi-starter/` copy) denies `Read` on `**/definition/cultures/**` and `**/.pbi/cache.abf`
 - `sync-user-settings.sh` manages `env` variable by variable, like the permission lists, so a machine's own environment variables survive a sync of a `user/settings.json` you add
-- `docs/using-the-pack.md`: a *Context & token discipline* section, with opt-in settings for a smaller auto-compact window and a default subagent model; the README's script table and layout follow
+- `docs/using-the-pack.md`: a *Context & token discipline* section, with opt-in settings for a smaller auto-compact window (`autoCompactWindow`) and a default subagent model; the README's script table and layout follow
 
 ## [1.0.1] - 2026-11-03
 

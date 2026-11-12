@@ -27,3 +27,7 @@ backups/
 
 # Brand preview written by power-bi-themes preview_brand.py - regenerated on demand, never published
 assets/preview.html
+
+# Generated project maps (pbi_map.py) - rebuilt on demand, never committed
+docs/model-map.md
+docs/report-map.md

@@ -73,7 +73,9 @@ if os.path.exists(path):
     if not os.path.exists(bak):
         io.open(bak, 'w', encoding='utf-8').write(json.dumps(s, indent=2, ensure_ascii=False))
 
-start = {"matcher": "startup|resume", "hooks": [{
+# All four sources: the hook itself prints only the project-state block on clear/compact.
+START_MATCHER = "startup|resume|clear|compact"
+start = {"matcher": START_MATCHER, "hooks": [{
     "type": "command", "shell": "bash",
     "command": "sh ~/.claude/pbi-sync/bin/hook-session-start.sh", "timeout": 15}]}
 end = {"hooks": [{
@@ -87,6 +89,11 @@ def ensure(event, entry, marker):
     for e in existing:
         for h in e.get("hooks", []):
             if marker in str(h.get("command", "")):
+                # Migrate the matcher this installer wrote before clear/compact were handled. Any
+                # other matcher is someone's own choice and is left alone.
+                if event == "SessionStart" and e.get("matcher") == "startup|resume":
+                    e["matcher"] = START_MATCHER
+                    return "matcher widened to " + START_MATCHER
                 return "already present"
     existing.append(entry)
     return "added"

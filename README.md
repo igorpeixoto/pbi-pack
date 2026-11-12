@@ -114,14 +114,15 @@ These scripts change your Claude Code setup outside this repo, for every project
 | --- | --- |
 | `scripts/sync-skills.sh` | Copies `skills/` to `~/.claude/skills/`, and removes `power-bi-*` skills no longer in this repo |
 | `scripts/sync-user-claude.sh` | Replaces its marked span in `~/.claude/CLAUDE.md` |
-| `scripts/sync-user-settings.sh` | Merges the keys of a `user/settings.json` you add into `~/.claude/settings.json`. The repo ships none, so it does nothing until you add one |
-| `scripts/install-pbi-sync.sh` | Installs to `~/.claude/pbi-sync/bin/`, adds session hooks and fills in missing advisor settings |
+| `scripts/sync-user-settings.sh` | Merges the keys of a `user/settings.json` you add into `~/.claude/settings.json`, with `env` variables and permission entries merged one by one. The repo ships none, so it does nothing until you add one |
+| `scripts/install-pbi-sync.sh` | Installs to `~/.claude/pbi-sync/bin/`, adds session hooks (the start hook also runs after `/clear` and after a compaction) and fills in missing advisor settings |
 | `scripts/sync-home.sh` | Runs all of the above, plus `install-hooks.sh` |
 | `scripts/install-hooks.sh` | Installs git hooks in this clone. From then on, a commit on any branch that touches `skills/`, `user/` or `scripts/pbi-sync/` runs the matching script above, and so do pulls and checkouts on `main` |
 
-One consequence to decide on first:
+Two consequences to decide on first:
 
 - **The session hook updates the pack by itself.** After `install-pbi-sync.sh`, each Claude Code session start can pull this repo, at most once every 6 hours, and the hooks then apply what it pulled. Set `PBI_PACK_AUTOUPDATE=0` to turn that off.
+- **The session hook puts project state into the session.** In a folder that holds a `.pbip`, it prints the first 4,000 characters of `docs/STATE.md` and whether the project maps are current, on every start, resume, `/clear` and compaction.
 
 To try the skills and nothing else, run only `sh scripts/sync-skills.sh`.
 
@@ -155,7 +156,7 @@ cp -r /path/to/pbi-pack/pbi-starter/. /path/to/new-powerbi-project/   # trailing
 
 For a standalone custom visual, copy `pbiviz-starter/` the same way. It has its own governance, because a TypeScript repo needs different rules from a report: `power-bi-visual-dev` takes the place of `power-bi-dev`.
 
-[`docs/using-the-pack.md`](docs/using-the-pack.md) has the full reference: extracting a custom visual into its own repo, the language policy, the release flow, how the git hooks and governance hashes work, publishing to OneDrive, setting up a second machine, and the advisor setup.
+[`docs/using-the-pack.md`](docs/using-the-pack.md) has the full reference: extracting a custom visual into its own repo, the language policy, the release flow, how the git hooks and governance hashes work, publishing to OneDrive, setting up a second machine, the advisor setup, and how the pack keeps a session's context small.
 
 ## Repository layout
 
@@ -168,8 +169,10 @@ pbi-pack/
 ├── THIRD-PARTY-NOTICES.md     Microsoft's notice for the sample report material
 ├── ruff.toml, .shellcheckrc   Lint settings used by CI
 ├── demo/                      Seeded synthetic dataset, its generator and its documentation
-├── tests/                     pytest checks on the dataset, the visual catalog and the demo's saved data
+├── tests/                     pytest checks on the dataset, the visual catalog, the demo's saved data
+│                              and the project maps
 ├── pbi-starter/               Kit to copy into a new report repo
+│   ├── docs/STATE.md          Project state template: stage, decisions, open checkpoints
 │   └── templates/demo/        The demo report as a PBIP: TMDL model and PBIR report
 ├── pbiviz-starter/            Kit for a standalone custom visual repo, with its own governance
 ├── reference/power-bi-visuals/  Microsoft's Power BI Visuals sample report, to browse in Desktop
@@ -177,6 +180,7 @@ pbi-pack/
 │   ├── power-bi-*/            16 skills: step zero, DAX, modeling, Power Query, deployment, release,
 │   │                          docs, security, diagnostics, reports, visuals, pages, themes,
 │   │                          filters and custom visuals
+│   ├── power-bi-dev/scripts/pbi_map.py  Generates a project's model map and report map
 │   └── power-bi-visuals/references/visual-catalog/  One working visual.json per visual type and feature
 ├── scripts/
 │   ├── check-denylist.sh      Fails when a forbidden term appears in a tracked file

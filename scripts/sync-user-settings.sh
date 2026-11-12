@@ -16,6 +16,8 @@
 #   - unchanged here since the last sync      -> takes the pack's value
 #   - changed here, pack unchanged            -> local value kept (reported once; --capture to share it)
 #   - changed here AND in the pack            -> local value kept, reported as a conflict
+#   - env                                     -> managed variable by variable under the same three
+#                                                rules; variables only this machine sets stay
 #   - permissions.allow / deny / ask          -> merged entry by entry: entries added to the pack are
 #                                                added, entries removed from the pack are removed,
 #                                                entries that exist only on this machine stay
@@ -64,14 +66,15 @@ def write_json(path, data):
     os.replace(tmp, path)   # atomic: Claude Code may be reading the file right now
 
 def managed(pack):
-    """Flatten the pack file into (path, value) pairs; permissions is managed key by key."""
+    """Flatten the pack file into (path, value) pairs; permissions and env are managed key by key,
+    so a machine's own env variables and permission keys are never replaced wholesale."""
     out = {}
     for k, v in pack.items():
         if k.startswith("$"):
             continue
-        if k == "permissions" and isinstance(v, dict):
+        if k in ("permissions", "env") and isinstance(v, dict):
             for pk, pv in v.items():
-                out[("permissions", pk)] = pv
+                out[(k, pk)] = pv
         else:
             out[(k,)] = v
     return out

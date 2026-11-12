@@ -7,6 +7,8 @@ This tracks the pack itself, not a Power BI project — `pbi-starter/CHANGELOG.m
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-12
+
 - Added `skills/power-bi-dev/scripts/pbi_map.py`: generates `docs/model-map.md` (tables, columns, measures by `displayFolder` with line numbers, relationships, shared M expressions) and `docs/report-map.md` (pages ➔ groups ➔ visuals with absolute positions and bound fields, off-page visuals flagged per Hard Rule 23), so a session reads a few KB instead of the `definition/` folders. `CLAUDE.md` §3 makes the maps the first read, `pbi-starter/.gitignore` ignores them, and `tests/test_pbi_map.py` runs the generator on the demo template and on a group child written with absolute coordinates
 - Added `docs/STATE.md` (template in `pbi-starter/docs/`) and `power-bi-dev` §6: stage, decisions and open checkpoints live in a file, each stage checkpoint updates it and recommends `/clear`. `CLAUDE.md` gained a *Compact instructions* section saying what a compaction must keep
 - The `SessionStart` hook now also runs on `clear` and `compact`, where it prints only the project state (`docs/STATE.md`, whether the maps are current, and after a compaction what is uncommitted); `install-pbi-sync.sh` widens an existing `startup|resume` matcher

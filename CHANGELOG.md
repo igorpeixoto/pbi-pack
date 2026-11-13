@@ -7,6 +7,8 @@ This tracks the pack itself, not a Power BI project — `pbi-starter/CHANGELOG.m
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-12
+
 - `.claude/settings.json` (and its `pbi-starter/` copy) sets `autoCompactWindow: 250000`: a session in the pack or in a project built from the starter compacts at 250K tokens instead of about 967K on a model with a 1M window. It is set per project on purpose, so no other session on the machine changes; `claude --autocompact <tokens>` or a value in `.claude/settings.local.json` overrides it. `docs/using-the-pack.md` moves it out of the opt-in user settings and says how to change it
 - `scripts/sync-user-settings.sh`: a key or variable removed from your `user/settings.json` is now removed from each machine too when it still holds the value the file gave it (kept and reported once when it was changed there; a permission list you drop takes its entries back), and `modelSettings` is merged per model and per key, so a window or effort that `/autocompact` or `/effort` saves for one model no longer conflicts with the entries in your file. A state file written by an earlier version migrates on the next run. `tests/test_sync_user_settings.py` covers the merge in a throwaway home folder
 

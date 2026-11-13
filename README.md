@@ -114,7 +114,7 @@ These scripts change your Claude Code setup outside this repo, for every project
 | --- | --- |
 | `scripts/sync-skills.sh` | Copies `skills/` to `~/.claude/skills/`, and removes `power-bi-*` skills no longer in this repo |
 | `scripts/sync-user-claude.sh` | Replaces its marked span in `~/.claude/CLAUDE.md` |
-| `scripts/sync-user-settings.sh` | Merges the keys of a `user/settings.json` you add into `~/.claude/settings.json`, with `env` variables and permission entries merged one by one. The repo ships none, so it does nothing until you add one |
+| `scripts/sync-user-settings.sh` | Merges the keys of a `user/settings.json` you add into `~/.claude/settings.json`, with `env` variables, per-model settings and permission entries merged one by one, and removes an entry you later delete from that file where the machine still has its value. The repo ships none, so it does nothing until you add one |
 | `scripts/install-pbi-sync.sh` | Installs to `~/.claude/pbi-sync/bin/`, adds session hooks (the start hook also runs after `/clear` and after a compaction) and fills in missing advisor settings |
 | `scripts/sync-home.sh` | Runs all of the above, plus `install-hooks.sh` |
 | `scripts/install-hooks.sh` | Installs git hooks in this clone. From then on, a commit on any branch that touches `skills/`, `user/` or `scripts/pbi-sync/` runs the matching script above, and so do pulls and checkouts on `main` |

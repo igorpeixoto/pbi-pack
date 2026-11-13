@@ -105,7 +105,7 @@ Three hooks driving the governance stamping and the syncs into `~/.claude/`:
 1. **`pre-commit` — governance stamping (+ the `CLAUDE.md` → `pbi-starter/CLAUDE.md` copy):** stamps each just-edited governance file with a `<!-- <slug>-hash: ... -->` line (a short hash of its governance block, auto-generated — never hand-edit it) right after its `BEGIN` marker, via the shared `scripts/stamp-governance.sh`. Two files, two independent slugs: `CLAUDE.md` (`power-bi-skills`), whose `BEGIN`..`END` span is then copied to `pbi-starter/CLAUDE.md` by `scripts/sync-starter.sh` and both staged — the root file's pack-only notes after the `END` marker stay behind, and the same script copies `.claude/settings.json` to `pbi-starter/.claude/settings.json` whenever it changes (the starter used to drift behind the root's pre-approved `pbi` verbs); and `pbiviz-starter/CLAUDE.md` (`power-bi-visual-skills`), which is stamped **in place** — it is its own canonical source, since the pack root is a governance repo and not a `.pbiviz` repo, so there is nothing to copy it from. A GitHub Action (`.github/workflows/sync-claude.yml`) repeats both stamps and the copy on push as a backstop, for pushes from a machine where the hook was never installed.
 2. **`pre-commit` — `skills/` → `~/.claude/skills/`:** Claude Code loads skills from `~/.claude/skills/`, which has **no automatic link** to this repo's `skills/` folder — it's a separate, manually-installed copy. The hook re-copies every `skills/<name>/` directory into `~/.claude/skills/<name>/` whenever anything under `skills/` is committed, so skill edits take effect in the next session without a manual copy step. (This side of the sync is runtime-only and machine-local — it's never staged into the git commit itself.)
 3. **`pre-commit` — `user/CLAUDE.md` → `~/.claude/CLAUDE.md`:** replaces only the `<!-- BEGIN pbi-pack-user -->`..`END` span of your user-level `CLAUDE.md` (`scripts/sync-user-claude.sh`), so anything else you keep in that file survives. If the span was edited directly in `~/.claude/CLAUDE.md` since the last sync, the script **refuses to overwrite it** and says so: move the edit into `user/CLAUDE.md`, or rerun with `--force` (a backup is kept as `CLAUDE.md.bak-pbi-pack`).
-   **`user/settings.json` → `~/.claude/settings.json`** is optional: the repo ships no `user/settings.json`, so add your own to share settings between your machines. It works the same way per key (`scripts/sync-user-settings.sh`): only the keys listed in `user/settings.json` are managed, and everything else in your settings (the session hooks, machine-specific `env`, plugins) stays local. Because `/model`, `/effort` and `/config` write to that same file, the merge is three-way against what was last synced: a key changed on this machine keeps its local value and is reported once — run `sh scripts/sync-user-settings.sh --capture` in the pack to copy this machine's values of the managed keys into `user/settings.json`, then commit to share them. `permissions.allow`/`deny`/`ask` merge entry by entry (pack additions added, pack removals removed, a machine's own one-off approvals kept and never captured), and `env` is managed variable by variable, so a machine's own environment variables are never replaced. A value that looks like a secret makes the script refuse to sync: secrets never go in the pack.
+   **`user/settings.json` → `~/.claude/settings.json`** is optional: the repo ships no `user/settings.json`, so add your own to share settings between your machines. It works the same way per key (`scripts/sync-user-settings.sh`): only the keys listed in `user/settings.json` are managed, and everything else in your settings (the session hooks, machine-specific `env`, plugins) stays local. Because `/model`, `/effort` and `/config` write to that same file, the merge is three-way against what was last synced: a key changed on this machine keeps its local value and is reported once — run `sh scripts/sync-user-settings.sh --capture` in the pack to copy this machine's values of the managed keys into `user/settings.json`, then commit to share them. `permissions.allow`/`deny`/`ask` merge entry by entry (pack additions added, pack removals removed, a machine's own one-off approvals kept and never captured), and `env` is managed variable by variable, so a machine's own environment variables are never replaced. `modelSettings` is managed per model and per key for the same reason: what `/autocompact` or `/effort` saves there for one model never blocks the other keys in your file. A key or variable **removed** from `user/settings.json` is removed from each machine too when the machine still has the value the file gave it; a value changed there is kept, reported once, and is that machine's own from then on. A value that looks like a secret makes the script refuse to sync: secrets never go in the pack.
 4. **`post-merge` + `post-checkout` — all of the above after a pull or a branch switch**, via `scripts/sync-home.sh`: skills, the `CLAUDE.md` span, the settings keys, the `pbi-sync` scripts, and the git hooks themselves, each only when the pull touched it. Because the hooks reinstall themselves, a pull that changes the sync logic takes effect on the next pull with no installer to run. `pre-commit` only fires on `git commit`, which helps nothing on a machine where you only *pull*; these two close that gap.
 
 **Nobody has to run `git pull` either.** The `SessionStart` hook (`scripts/pbi-sync/hook-session-start.sh`) pulls the pack in the background at most once every 6 hours (`PBI_PACK_UPDATE_HOURS`), fast-forward only and only on a clean `main`; `post-merge` then does the copying. It never delays a session start, what it pulls takes effect from the next session, and a failed attempt (offline, diverged, no SSH) is reported once at the next session start with the reason kept in `~/.claude/pbi-sync/state/pack-autoupdate.log`. Turn it off with `PBI_PACK_AUTOUPDATE=0`. The one thing it does not do is push: commits made on a machine still need `git push`.
@@ -236,7 +236,7 @@ A rung is skipped when `claude` exits non-zero within 20 seconds (a launch refus
 
 ## Context & token discipline
 
-Every request re-sends the whole conversation, so the cost of a session is driven by how large its context is allowed to grow, far more than by the size of `CLAUDE.md` or the skills. Three pieces ship with the pack and work as soon as it is installed; a fourth is a pair of settings you opt into.
+Every request re-sends the whole conversation, so the cost of a session is driven by how large its context is allowed to grow, far more than by the size of `CLAUDE.md` or the skills. Five pieces ship with the pack: three work as soon as it is installed, two come with each project's `.claude/settings.json`. A sixth is a setting you opt into.
 
 | Piece | Where | What it does |
 | --- | --- | --- |
@@ -244,6 +244,7 @@ Every request re-sends the whole conversation, so the cost of a session is drive
 | Session-start hook | `scripts/pbi-sync/hook-session-start.sh` | Runs on startup, resume, `/clear` and after a compaction. In a project folder it prints `docs/STATE.md` (first 4,000 characters) and whether the maps are current, stale or missing; after a compaction it also lists what is uncommitted. On `/clear` and compaction it prints nothing else. |
 | Project maps | `skills/power-bi-dev/scripts/pbi_map.py` ➔ `docs/model-map.md`, `docs/report-map.md` | A generated index of the project: tables, columns, measures with line numbers, relationships and shared M expressions; pages ➔ groups ➔ visuals with absolute positions and bound fields. A session reads the map, then only the file or line range it points at, instead of the `definition/` folders. It also flags visuals that land outside their page (Hard Rule 23). |
 | Read deny rules | `.claude/settings.json` | Denies `Read` on `**/definition/cultures/**` and `**/.pbi/cache.abf`, the two paths where one accidental read costs the most. |
+| Auto-compact window | `.claude/settings.json` | `autoCompactWindow: 250000`: a session in the pack or in a project that carries this file compacts at 250K tokens, where a model with a 1M window otherwise waits until about 967K. Sessions anywhere else on the machine keep their own window. |
 
 ```bash
 python ~/.claude/skills/power-bi-dev/scripts/pbi_map.py              # from a project root: writes docs/*.md, adds them to .gitignore
@@ -254,15 +255,28 @@ The maps are generated and not committed; `STATE.md` is hand-written and committ
 
 A session hook installed before this existed is matched on `startup|resume` only. Rerun `sh scripts/install-pbi-sync.sh` (with the git hooks installed, the pull that brings this change does it): it widens that matcher to `startup|resume|clear|compact` once, and leaves any matcher you wrote yourself alone.
 
-### Opt-in: a smaller context window and a cheaper subagent model
+### The auto-compact window is set per project
 
-The pack ships no `user/settings.json` and the installer sets neither of these, because both change how every session on the machine behaves. To use them, add them to your own `~/.claude/settings.json`, or to a `user/settings.json` in your clone so `sync-user-settings.sh` carries them to your other machines (see **Automated Sync**):
+`autoCompactWindow` is how full the context gets before Claude Code compacts it, in tokens, from `100000` to `1000000`, capped at the model's window. Without it, a model with a 1M window compacts at about 967K. The pack sets `250000` in `.claude/settings.json`, and the starter carries a copy of that file, so it applies to sessions started in the pack and in a project built from it, and to nothing else on the machine. A project created before this existed gets it when you add the key to its own `.claude/settings.json`.
+
+`250000` is a starting point: lower it for shorter sessions, raise it if compactions interrupt long stages. To change it:
+
+| For | Do this |
+| --- | --- |
+| One session | Start it with `claude --autocompact 400k`, or `claude --autocompact auto` for the model's own default. |
+| Yourself, in one project | Put your own `autoCompactWindow` in that project's `.claude/settings.local.json`, which ranks above the shared file and is not committed. |
+| Everyone on the project | Edit the value in `.claude/settings.json`, or delete the key to go back to the model's default. |
+
+`/autocompact` saves to your user settings, which rank below a project's file. In these projects it still saves your value, but the session keeps the project's window, and the command says so. The `CLAUDE_CODE_AUTO_COMPACT_WINDOW` environment variable sets the same threshold and wins over the setting, the flag and the command, and while it is set the status line's percentage no longer says when compaction will run, so the pack does not use it.
+
+### Opt-in: a cheaper subagent model
+
+The pack ships no `user/settings.json` and the installer does not set this, because it changes how every session on the machine behaves. To use it, add it to your own `~/.claude/settings.json`, or to a `user/settings.json` in your clone so `sync-user-settings.sh` carries it to your other machines (see **Automated Sync**):
 
 ```json
 {
   "model": "sonnet[1m]",
   "effortLevel": "high",
-  "autoCompactWindow": 250000,
   "env": {
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
   }
@@ -272,12 +286,13 @@ The pack ships no `user/settings.json` and the installer sets neither of these, 
 | Key | What it does |
 | --- | --- |
 | `model`, `effortLevel` | The first rung of the pairing ladder above: Sonnet writes the code at effort `high`. `advisorModel` and `fallbackModel` can sit beside them. |
-| `autoCompactWindow` | How full the context gets before Claude Code compacts it, in tokens, from `100000` to `1000000`, capped at the model's window. Without it, a model with a 1M window compacts at about 967K. It stays adjustable: `--autocompact` overrides it for one session, and `/autocompact` saves a window for the current model under `modelSettings`, which then takes precedence over this key in the same file for that model. The `CLAUDE_CODE_AUTO_COMPACT_WINDOW` environment variable sets the same threshold but wins over the key and the flag, so use it only when the value must not be changed from inside a session. |
 | `env.CLAUDE_CODE_SUBAGENT_MODEL` | The default model for subagents that are not given one another way, so they stop inheriting the main model. It is a default: a model passed for one call, or the `model` field in an agent's definition, still wins, and it does not change the built-in Explore and Plan agents. |
 
-Both settings are described here from the Claude Code documentation ([settings reference](https://code.claude.com/docs/en/settings-reference#autocompactwindow), [model configuration](https://code.claude.com/docs/en/model-config), [subagents](https://code.claude.com/docs/en/sub-agents)) as it read in November 2026; the pack has no test that proves either takes effect in a live session, so confirm it on your machine. `250000` is a starting point: lower it for shorter sessions, raise it if compactions interrupt long stages.
+To compact at the same size in every project on the machine, `autoCompactWindow` can go in this file too. At user level `/autocompact` works as usual: it saves a window for the current model under `modelSettings`, which takes precedence over the top-level key in the same file for that model.
 
-`sync-user-settings.sh` treats `autoCompactWindow` like any other managed key and merges `env` variable by variable: variables in your `user/settings.json` are added, a variable only one machine sets stays there, and a value you changed locally is kept and reported, like every other managed key.
+The window and the subagent model are described here from the Claude Code documentation ([settings reference](https://code.claude.com/docs/en/settings-reference#autocompactwindow), [model configuration](https://code.claude.com/docs/en/model-config), [subagents](https://code.claude.com/docs/en/sub-agents)) as it read in November 2026; the pack has no test that proves either takes effect in a live session, so confirm it on your machine.
+
+`sync-user-settings.sh` merges `env` variable by variable and `modelSettings` per model and per key: entries in your `user/settings.json` are added, an entry only one machine has stays there (a window `/autocompact` saved for one model, for instance), and a value you changed locally is kept and reported, like every other managed key. An entry you later delete from `user/settings.json` is deleted from each machine that still has the value the file gave it, and kept where it was changed.
 
 ---
 

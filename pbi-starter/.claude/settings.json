@@ -1,6 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "$comment": "Pre-approved permissions for Power BI PBIP / TMDL projects. Rules are glob-matched; trailing ' *' allows arguments.",
+  "$comment": "Pre-approved permissions for Power BI PBIP / TMDL projects. Rules are glob-matched; trailing ' *' allows arguments. autoCompactWindow compacts sessions in this project at 250K tokens instead of the model's default; override it for yourself in .claude/settings.local.json or for one session with 'claude --autocompact <tokens>'.",
+  "autoCompactWindow": 250000,
   "permissions": {
     "allow": [
       "Read(**)",
